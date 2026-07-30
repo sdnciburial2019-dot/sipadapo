@@ -22,6 +22,21 @@ export function formatNisn(nisn: string | number | undefined | null): string {
   return clean;
 }
 
+export function isStudentMutasi(s: Student): boolean {
+  if (!s) return false;
+  return s.statusSiswa === 'Mutasi Keluar' || s.rombel === 'Mutasi Keluar' || s.rombel === 'Mutasi';
+}
+
+export function isStudentAlumni(s: Student): boolean {
+  if (!s) return false;
+  return s.statusSiswa === 'Alumni' || s.rombel === 'Alumni' || s.rombel === 'Lulus' || s.rombel === 'Lulus / Alumni';
+}
+
+export function isStudentAktif(s: Student): boolean {
+  if (!s) return true;
+  return !isStudentMutasi(s) && !isStudentAlumni(s);
+}
+
 export function getStoredStudents(): Student[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY_STUDENTS);

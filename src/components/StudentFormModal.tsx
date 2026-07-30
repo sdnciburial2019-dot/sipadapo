@@ -242,9 +242,15 @@ export const StudentFormModal: React.FC<StudentFormModalProps> = ({
                   onChange={e => handleChange('rombel', e.target.value)}
                   className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 font-bold"
                 >
-                  {ROMBEL_LIST.map(r => (
-                    <option key={r} value={r}>Kelas {r}</option>
-                  ))}
+                  <optgroup label="--- Rombel (Kelas) ---">
+                    {ROMBEL_LIST.map(r => (
+                      <option key={r} value={r}>Kelas {r}</option>
+                    ))}
+                  </optgroup>
+                  <optgroup label="--- Kelulusan & Mutasi ---">
+                    <option value="Mutasi Keluar">📤 Mutasi Keluar</option>
+                    <option value="Alumni">🎓 Alumni / Lulus</option>
+                  </optgroup>
                 </select>
               </div>
 

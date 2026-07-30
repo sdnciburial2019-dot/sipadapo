@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 import { Student, SchoolInfo } from '../types';
 import { ROMBEL_LIST } from '../data/dapodikOptions';
-import { formatNisn } from '../utils/storage';
+import { formatNisn, isStudentMutasi } from '../utils/storage';
 import { INDONESIAN_MONTHS, getTodayIndonesianDate, generateLetterNumber } from '../utils/letterUtils';
 
 export type DocType = 
@@ -38,6 +38,7 @@ interface AdminDocumentsModalProps {
   initialDocType?: DocType;
   initialStudent?: Student | null;
   onClose: () => void;
+  onMutasiKeluar?: (student: Student) => void;
 }
 
 export const AdminDocumentsModal: React.FC<AdminDocumentsModalProps> = ({
@@ -46,6 +47,7 @@ export const AdminDocumentsModal: React.FC<AdminDocumentsModalProps> = ({
   initialDocType = 'absensi',
   initialStudent = null,
   onClose,
+  onMutasiKeluar,
 }) => {
   const [activeTab, setActiveTab] = useState<DocType>(initialDocType);
 
@@ -163,6 +165,11 @@ export const AdminDocumentsModal: React.FC<AdminDocumentsModalProps> = ({
 
   // Print Handler
   const handlePrint = () => {
+    if (activeTab === 'mutasi_keluar' && currentStudent && !isStudentMutasi(currentStudent) && onMutasiKeluar) {
+      if (confirm(`Surat Mutasi Keluar untuk "${currentStudent.namaSiswa}" akan dicetak. Apakah Anda ingin langsung mengeluarkan murid ini dari Rombel ${currentStudent.rombel} dan memindahkannya ke Tab Murid Mutasi?`)) {
+        onMutasiKeluar(currentStudent);
+      }
+    }
     window.print();
   };
 
@@ -615,6 +622,38 @@ export const AdminDocumentsModal: React.FC<AdminDocumentsModalProps> = ({
                     className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800"
                   />
                 </div>
+
+                {currentStudent && (
+                  <div className="pt-2">
+                    <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl space-y-2 text-xs">
+                      <div className="font-bold text-amber-900 flex items-center gap-1.5">
+                        <UserMinus className="w-4 h-4 text-amber-600" />
+                        Status Keanggotaan Rombel:
+                      </div>
+                      <p className="text-[11px] text-amber-800 leading-snug">
+                        {isStudentMutasi(currentStudent) ? (
+                          <span className="font-bold text-rose-700 block">
+                            ✓ Murid ini sudah berstatus Mutasi Keluar & berada di Tab Murid Mutasi.
+                          </span>
+                        ) : (
+                          <span className="block">
+                            Murid ini aktif di <strong>Rombel {currentStudent.rombel}</strong>.
+                          </span>
+                        )}
+                      </p>
+                      {!isStudentMutasi(currentStudent) && onMutasiKeluar && (
+                        <button
+                          type="button"
+                          onClick={() => onMutasiKeluar(currentStudent)}
+                          className="w-full py-2 px-3 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-lg shadow-xs transition-colors cursor-pointer flex items-center justify-center gap-1.5 text-xs"
+                        >
+                          <UserMinus className="w-3.5 h-3.5" />
+                          Proses & Pindahkan ke Tab Murid Mutasi
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
               </>
             )}
 

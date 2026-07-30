@@ -7,7 +7,10 @@ import {
   GraduationCap, 
   Download,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  Users,
+  UserMinus,
+  Award
 } from 'lucide-react';
 import { Student, SchoolInfo, FilterOptions } from './types';
 import { 
@@ -15,7 +18,10 @@ import {
   saveStudents, 
   getStoredSchoolInfo, 
   exportToExcel, 
-  calculateStudentCompleteness 
+  calculateStudentCompleteness,
+  isStudentAktif,
+  isStudentMutasi,
+  isStudentAlumni
 } from './utils/storage';
 import { 
   subscribeStudents, 
@@ -42,6 +48,9 @@ export default function App() {
   const [students, setStudents] = useState<Student[]>(getStoredStudents());
   const [schoolInfo, setSchoolInfo] = useState<SchoolInfo>(getStoredSchoolInfo());
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
+
+  // Main Classification Tab State: 'aktif' | 'mutasi' | 'alumni'
+  const [mainTab, setMainTab] = useState<'aktif' | 'mutasi' | 'alumni'>('aktif');
 
   // Filter State
   const [filters, setFilters] = useState<FilterOptions>({
@@ -122,9 +131,20 @@ export default function App() {
     };
   }, []);
 
+  // Classified Student Lists
+  const activeStudents = useMemo(() => students.filter(isStudentAktif), [students]);
+  const mutasiStudents = useMemo(() => students.filter(isStudentMutasi), [students]);
+  const alumniStudents = useMemo(() => students.filter(isStudentAlumni), [students]);
+
+  const currentTabBaseStudents = useMemo(() => {
+    if (mainTab === 'mutasi') return mutasiStudents;
+    if (mainTab === 'alumni') return alumniStudents;
+    return activeStudents;
+  }, [mainTab, activeStudents, mutasiStudents, alumniStudents]);
+
   // Filter Logic
   const filteredStudents = useMemo(() => {
-    return students.filter(s => {
+    return currentTabBaseStudents.filter(s => {
       // Search
       if (filters.search.trim()) {
         const query = filters.search.toLowerCase();
@@ -159,7 +179,7 @@ export default function App() {
 
       return true;
     });
-  }, [students, filters]);
+  }, [currentTabBaseStudents, filters]);
 
   // Bulk Selection Handlers
   const handleToggleSelectAll = () => {
@@ -176,23 +196,53 @@ export default function App() {
     );
   };
 
+  // Process Mutasi Keluar for a single student
+  const handleMutasiKeluar = async (student: Student) => {
+    const updatedStudent: Student = {
+      ...student,
+      rombel: 'Mutasi Keluar',
+      statusSiswa: 'Mutasi Keluar',
+    };
+
+    try {
+      await saveStudentToFirestore(updatedStudent);
+      showToast(`Murid ${student.namaSiswa} berhasil dipindahkan dari Rombel ${student.rombel} ke Tab Murid Mutasi.`);
+    } catch (err) {
+      console.error('Error processing mutasi in Firestore:', err);
+      const updated = students.map(s => s.id === student.id ? updatedStudent : s);
+      setStudents(updated);
+      saveStudents(updated);
+      showToast(`Murid ${student.namaSiswa} dipindahkan ke Tab Murid Mutasi.`);
+    }
+  };
+
   // Save / Update Student
   const handleSaveStudent = async (studentData: Student) => {
-    const exists = students.some(s => s.id === studentData.id);
-    if (exists) {
-      showToast(`Data murid ${studentData.namaSiswa} berhasil diperbarui.`);
+    // Automatically adjust statusSiswa if rombel is Mutasi or Alumni
+    let finalStudent = { ...studentData };
+    if (studentData.rombel === 'Mutasi Keluar' || studentData.rombel === 'Mutasi') {
+      finalStudent.statusSiswa = 'Mutasi Keluar';
+    } else if (studentData.rombel === 'Alumni' || studentData.rombel === 'Lulus') {
+      finalStudent.statusSiswa = 'Alumni';
     } else {
-      showToast(`Murid baru ${studentData.namaSiswa} berhasil ditambahkan.`);
+      finalStudent.statusSiswa = 'Aktif';
+    }
+
+    const exists = students.some(s => s.id === finalStudent.id);
+    if (exists) {
+      showToast(`Data murid ${finalStudent.namaSiswa} berhasil diperbarui.`);
+    } else {
+      showToast(`Murid baru ${finalStudent.namaSiswa} berhasil ditambahkan.`);
     }
 
     try {
-      await saveStudentToFirestore(studentData);
+      await saveStudentToFirestore(finalStudent);
     } catch (err) {
       console.error('Error saving student to Firestore:', err);
       showToast('Gagal menyimpan ke cloud, menyimpan secara lokal.');
       const updated = exists 
-        ? students.map(s => s.id === studentData.id ? studentData : s) 
-        : [studentData, ...students];
+        ? students.map(s => s.id === finalStudent.id ? finalStudent : s) 
+        : [finalStudent, ...students];
       setStudents(updated);
       saveStudents(updated);
     }
@@ -234,11 +284,20 @@ export default function App() {
     }
   };
 
-  // Bulk Change Class (Rombel)
+  // Bulk Change Class (Rombel) / Graduate to Alumni
   const handleBulkChangeRombel = async (targetRombel: string) => {
+    const isAlumniTarget = targetRombel === 'Alumni' || targetRombel === 'Lulus';
+    const isMutasiTarget = targetRombel === 'Mutasi Keluar' || targetRombel === 'Mutasi';
+
     const updated = students.map(s => {
       if (selectedIds.includes(s.id)) {
-        return { ...s, rombel: targetRombel };
+        if (isAlumniTarget) {
+          return { ...s, rombel: 'Alumni', statusSiswa: 'Alumni' as const };
+        }
+        if (isMutasiTarget) {
+          return { ...s, rombel: 'Mutasi Keluar', statusSiswa: 'Mutasi Keluar' as const };
+        }
+        return { ...s, rombel: targetRombel, statusSiswa: 'Aktif' as const };
       }
       return s;
     });
@@ -246,7 +305,13 @@ export default function App() {
     try {
       const changedStudents = updated.filter(s => selectedIds.includes(s.id));
       await saveAllStudentsToFirestore(changedStudents);
-      showToast(`${selectedIds.length} murid berhasil dipindahkan ke Rombel ${targetRombel}.`);
+      if (isAlumniTarget) {
+        showToast(`${selectedIds.length} murid telah diluluskan dan dipindahkan ke Tab Alumni.`);
+      } else if (isMutasiTarget) {
+        showToast(`${selectedIds.length} murid telah dipindahkan ke Tab Murid Mutasi.`);
+      } else {
+        showToast(`${selectedIds.length} murid berhasil dipindahkan ke Rombel ${targetRombel}.`);
+      }
     } catch (err) {
       console.error('Error updating rombel in Firestore:', err);
       setStudents(updated);
@@ -297,15 +362,120 @@ export default function App() {
 
       {/* Main Dashboard Stats & Recharts Visualizations */}
       <DashboardStats
-        students={students}
-        onSelectRombelFilter={r => setFilters(prev => ({ ...prev, rombel: r, dataCompleteness: 'all', pipStatus: '' }))}
-        onSelectPipFilter={p => setFilters(prev => ({ ...prev, pipStatus: prev.pipStatus === 'Ya' ? '' : 'Ya', dataCompleteness: 'all' }))}
-        onSelectIncompleteFilter={() => setFilters(prev => ({ ...prev, dataCompleteness: prev.dataCompleteness === 'incomplete' ? 'all' : 'incomplete' }))}
+        students={activeStudents}
+        onSelectRombelFilter={r => {
+          setMainTab('aktif');
+          setFilters(prev => ({ ...prev, rombel: r, dataCompleteness: 'all', pipStatus: '' }));
+        }}
+        onSelectPipFilter={p => {
+          setMainTab('aktif');
+          setFilters(prev => ({ ...prev, pipStatus: prev.pipStatus === 'Ya' ? '' : 'Ya', dataCompleteness: 'all' }));
+        }}
+        onSelectIncompleteFilter={() => {
+          setMainTab('aktif');
+          setFilters(prev => ({ ...prev, dataCompleteness: prev.dataCompleteness === 'incomplete' ? 'all' : 'incomplete' }));
+        }}
         selectedCompletenessFilter={filters.dataCompleteness}
       />
 
       {/* Main Application Directory Body */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-4">
+        
+        {/* Main Tab Classification Navigation Bar: Aktif | Mutasi | Alumni */}
+        <div className="bg-white rounded-2xl border border-slate-200 p-3.5 shadow-xs space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setMainTab('aktif');
+                  setFilters(prev => ({ ...prev, rombel: '' }));
+                  setSelectedIds([]);
+                }}
+                className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
+                  mainTab === 'aktif'
+                    ? 'bg-emerald-600 text-white shadow-md ring-2 ring-emerald-600/20'
+                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                }`}
+              >
+                <Users className="w-4 h-4" />
+                <span>Daftar Murid Aktif</span>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${
+                  mainTab === 'aktif' ? 'bg-emerald-700 text-emerald-100' : 'bg-slate-200 text-slate-700'
+                }`}>
+                  {activeStudents.length}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setMainTab('mutasi');
+                  setFilters(prev => ({ ...prev, rombel: '' }));
+                  setSelectedIds([]);
+                }}
+                className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
+                  mainTab === 'mutasi'
+                    ? 'bg-amber-600 text-white shadow-md ring-2 ring-amber-600/20'
+                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                }`}
+              >
+                <UserMinus className="w-4 h-4" />
+                <span>Murid Mutasi Keluar</span>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${
+                  mainTab === 'mutasi' ? 'bg-amber-700 text-amber-100' : 'bg-amber-100 text-amber-800'
+                }`}>
+                  {mutasiStudents.length}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setMainTab('alumni');
+                  setFilters(prev => ({ ...prev, rombel: '' }));
+                  setSelectedIds([]);
+                }}
+                className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
+                  mainTab === 'alumni'
+                    ? 'bg-sky-600 text-white shadow-md ring-2 ring-sky-600/20'
+                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                }`}
+              >
+                <Award className="w-4 h-4" />
+                <span>Alumni / Siswa Lulus</span>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${
+                  mainTab === 'alumni' ? 'bg-sky-700 text-sky-100' : 'bg-sky-100 text-sky-800'
+                }`}>
+                  {alumniStudents.length}
+                </span>
+              </button>
+            </div>
+
+            <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
+              {mainTab === 'aktif' && <span>Menampilkan seluruh murid aktif di rombel kelas.</span>}
+              {mainTab === 'mutasi' && <span className="text-amber-700 font-bold">📤 Tab Khusus Murid Mutasi Keluar</span>}
+              {mainTab === 'alumni' && <span className="text-sky-700 font-bold">🎓 Tab Khusus Alumni & Siswa Lulus</span>}
+            </div>
+          </div>
+
+          {mainTab === 'mutasi' && (
+            <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 flex items-center justify-between">
+              <span className="font-medium">
+                Daftar ini khusus memuat data murid yang telah membuat / memproses Surat Mutasi Keluar. Murid di sini otomatis keluar dari rombel asal.
+              </span>
+            </div>
+          )}
+
+          {mainTab === 'alumni' && (
+            <div className="p-3 bg-sky-50 border border-sky-200 rounded-xl text-xs text-sky-900 flex items-center justify-between">
+              <span className="font-medium">
+                Daftar ini khusus memuat alumni dan murid yang telah diluluskan melalui fitur Pindah / Naik Rombel Massal.
+              </span>
+            </div>
+          )}
+        </div>
+
         {/* View Toggle Bar */}
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
@@ -501,6 +671,7 @@ export default function App() {
           schoolInfo={schoolInfo}
           initialDocType={docsTypeTarget}
           initialStudent={docsStudentTarget}
+          onMutasiKeluar={handleMutasiKeluar}
           onClose={() => {
             setIsDocsOpen(false);
             setDocsStudentTarget(null);

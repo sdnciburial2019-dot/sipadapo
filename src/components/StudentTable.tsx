@@ -513,15 +513,21 @@ export const StudentTable: React.FC<StudentTableProps> = ({
             </p>
 
             <div>
-              <label className="text-xs font-semibold text-slate-700 block mb-1">Rombel Tujuan:</label>
+              <label className="text-xs font-semibold text-slate-700 block mb-1">Rombel Tujuan / Status Baru:</label>
               <select
                 value={targetRombel}
                 onChange={e => setTargetRombel(e.target.value)}
                 className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
               >
-                {ROMBEL_LIST.map(r => (
-                  <option key={r} value={r}>Kelas {r}</option>
-                ))}
+                <optgroup label="--- Rombel (Kelas) ---">
+                  {ROMBEL_LIST.map(r => (
+                    <option key={r} value={r}>Kelas {r}</option>
+                  ))}
+                </optgroup>
+                <optgroup label="--- Kelulusan & Kepindahan ---">
+                  <option value="Alumni">🎓 Lulus (Pindah ke Tab Alumni)</option>
+                  <option value="Mutasi Keluar">📤 Mutasi Keluar (Pindah ke Tab Murid Mutasi)</option>
+                </optgroup>
               </select>
             </div>
 

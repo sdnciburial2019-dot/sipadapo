@@ -1,8 +1,11 @@
 export type Gender = 'Laki-laki' | 'Perempuan';
 
+export type StudentStatus = 'Aktif' | 'Mutasi Keluar' | 'Alumni';
+
 export interface Student {
   id: string;
-  rombel: string; // e.g., '1 A', '1 B', '2 A', '3 A', '4 A', '5 A', '6 A'
+  rombel: string; // e.g., '1 A', '1 B', '2 A', '3 A', '4 A', '5 A', '6 A', 'Mutasi Keluar', 'Alumni'
+  statusSiswa?: StudentStatus;
   namaSiswa: string;
   nipd: string;
   jk: Gender;
