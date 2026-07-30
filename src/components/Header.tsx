@@ -7,7 +7,8 @@ import {
   School,
   Database,
   FileText,
-  CloudCheck
+  CloudCheck,
+  Activity
 } from 'lucide-react';
 import { SchoolInfo } from '../types';
 
@@ -18,6 +19,7 @@ interface HeaderProps {
   onOpenImportModal: () => void;
   onOpenSettingsModal: () => void;
   onOpenDocsModal: () => void;
+  onOpenPhysicalDataModal: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -27,6 +29,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenImportModal,
   onOpenSettingsModal,
   onOpenDocsModal,
+  onOpenPhysicalDataModal,
 }) => {
   return (
     <header id="main-header" className="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-30 shadow-md">
@@ -86,6 +89,16 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
 
             {/* Quick Action Buttons */}
+            <button
+              id="btn-physical-data"
+              onClick={onOpenPhysicalDataModal}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-600/90 hover:bg-amber-500 text-white text-xs font-semibold rounded-lg shadow-sm transition-all border border-amber-400/40 active:scale-95 cursor-pointer"
+              title="Form Update Masal Data Fisik (TB/BB) & Periodik Murid"
+            >
+              <Activity className="w-4 h-4 text-amber-200" />
+              <span>Data Fisik & Periodik</span>
+            </button>
+
             <button
               id="btn-admin-docs"
               onClick={onOpenDocsModal}

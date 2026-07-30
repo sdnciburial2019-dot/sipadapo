@@ -16,7 +16,8 @@ import {
   CheckCircle2,
   AlertCircle,
   AlertTriangle,
-  X
+  X,
+  Activity
 } from 'lucide-react';
 import { Student, FilterOptions } from '../types';
 import { ROMBEL_LIST } from '../data/dapodikOptions';
@@ -31,6 +32,7 @@ interface StudentTableProps {
   onDeleteStudent: (student: Student) => void;
   onPrintCard: (student: Student) => void;
   onPrintFpd: (student: Student) => void;
+  onOpenPhysicalDataModal?: () => void;
   selectedIds: string[];
   onToggleSelectAll: () => void;
   onToggleSelectOne: (id: string) => void;
@@ -49,6 +51,7 @@ export const StudentTable: React.FC<StudentTableProps> = ({
   onDeleteStudent,
   onPrintCard,
   onPrintFpd,
+  onOpenPhysicalDataModal,
   selectedIds,
   onToggleSelectAll,
   onToggleSelectOne,
@@ -142,6 +145,19 @@ export const StudentTable: React.FC<StudentTableProps> = ({
               <option value="all">Status Kelengkapan (Semua)</option>
               <option value="incomplete">⚠️ Data Belum Lengkap (&lt;85%)</option>
             </select>
+
+            {/* Update Data Fisik & Periodik Button */}
+            {onOpenPhysicalDataModal && (
+              <button
+                type="button"
+                onClick={onOpenPhysicalDataModal}
+                className="inline-flex items-center gap-1.5 px-3 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs rounded-lg shadow-xs transition-colors cursor-pointer"
+                title="Input / Update Data Fisik & Periodik Murid (TB, BB, Lingkar Kepala, Jarak, Transport)"
+              >
+                <Activity className="w-3.5 h-3.5 text-slate-950" />
+                <span>Update Data Fisik</span>
+              </button>
+            )}
 
             {/* Column Picker Button */}
             <div className="relative">

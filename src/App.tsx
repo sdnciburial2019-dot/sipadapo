@@ -43,6 +43,7 @@ import { DapodikFormPrintModal } from './components/DapodikFormPrintModal';
 import { ImportExportModal } from './components/ImportExportModal';
 import { SchoolSettingsModal } from './components/SchoolSettingsModal';
 import { AdminDocumentsModal, DocType } from './components/AdminDocumentsModal';
+import { PhysicalPeriodicalDataModal } from './components/PhysicalPeriodicalDataModal';
 
 export default function App() {
   const [students, setStudents] = useState<Student[]>(getStoredStudents());
@@ -78,6 +79,7 @@ export default function App() {
 
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isPhysicalDataOpen, setIsPhysicalDataOpen] = useState(false);
 
   // Administrative Documents Hub State
   const [isDocsOpen, setIsDocsOpen] = useState(false);
@@ -335,6 +337,13 @@ export default function App() {
     exportToExcel(selectedStudents, `dapodik_murid_terpilih_${Date.now()}.xlsx`);
   };
 
+  const handleSavePhysicalData = async (updatedStudents: Student[]) => {
+    setStudents(updatedStudents);
+    saveStudents(updatedStudents);
+    await saveAllStudentsToFirestore(updatedStudents);
+    showToast('Data Fisik & Periodik murid berhasil diperbarui!');
+  };
+
   return (
     <div className="min-h-screen bg-slate-100 text-slate-800 flex flex-col font-sans antialiased">
       {/* App Main UI Container (Hidden during Document Modal Printing) */}
@@ -358,6 +367,7 @@ export default function App() {
         onOpenImportModal={() => setIsImportOpen(true)}
         onOpenSettingsModal={() => setIsSettingsOpen(true)}
         onOpenDocsModal={() => handleOpenDocsModal('absensi')}
+        onOpenPhysicalDataModal={() => setIsPhysicalDataOpen(true)}
       />
 
       {/* Main Dashboard Stats & Recharts Visualizations */}
@@ -533,6 +543,7 @@ export default function App() {
               setFpdStudent(s);
               setIsFpdOpen(true);
             }}
+            onOpenPhysicalDataModal={() => setIsPhysicalDataOpen(true)}
             selectedIds={selectedIds}
             onToggleSelectAll={handleToggleSelectAll}
             onToggleSelectOne={handleToggleSelectOne}
@@ -676,6 +687,15 @@ export default function App() {
             setIsDocsOpen(false);
             setDocsStudentTarget(null);
           }}
+        />
+      )}
+
+      {/* 8. Physical & Periodical Data Batch Modal */}
+      {isPhysicalDataOpen && (
+        <PhysicalPeriodicalDataModal
+          students={students}
+          onSaveStudents={handleSavePhysicalData}
+          onClose={() => setIsPhysicalDataOpen(false)}
         />
       )}
     </div>
