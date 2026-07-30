@@ -634,6 +634,12 @@ export default function App() {
             setIsCardPrintOpen(false);
             setCardPrintStudents([]);
           }}
+          onUpdateStudent={updatedStudent => {
+            // Update local state for card preview
+            setCardPrintStudents(prev => prev.map(s => s.id === updatedStudent.id ? updatedStudent : s));
+            // Save student data to main list and Firestore
+            handleSaveStudent(updatedStudent);
+          }}
         />
       )}
 

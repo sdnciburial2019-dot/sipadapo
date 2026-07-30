@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   X, 
   Save, 
@@ -7,8 +7,10 @@ import {
   Users, 
   Award, 
   School, 
-  Building2,
-  AlertCircle
+  AlertCircle,
+  Camera,
+  Upload,
+  Trash2
 } from 'lucide-react';
 import { Student } from '../types';
 import { formatNisn, getStoredRombelList } from '../utils/storage';
@@ -222,7 +224,68 @@ export const StudentFormModal: React.FC<StudentFormModalProps> = ({
         <form id="form-student" onSubmit={handleSubmit} className="p-6 overflow-y-auto flex-1 space-y-4 text-xs text-slate-700">
           {/* STEP 1: DATA PRIBADI */}
           {activeStep === 'pribadi' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-4">
+              {/* Photo Upload Section */}
+              <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col sm:flex-row items-center gap-4">
+                <div className="w-20 h-24 bg-red-600 rounded-lg p-0.5 border-2 border-white shadow-md shrink-0 flex items-center justify-center relative overflow-hidden">
+                  {formData.fotoUrl ? (
+                    <img src={formData.fotoUrl} alt="Foto Murid" className="w-full h-full object-cover rounded-md" />
+                  ) : (
+                    <div className="text-center text-white p-1">
+                      <Camera className="w-6 h-6 mx-auto mb-1 opacity-90" />
+                      <span className="text-[9px] font-bold block uppercase leading-tight">Foto 3x4</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex-1 space-y-1.5 text-center sm:text-left">
+                  <h4 className="font-bold text-slate-800 text-xs">Pas Foto Digital Murid (Format 3x4)</h4>
+                  <p className="text-[11px] text-slate-500">
+                    Foto ini akan ditampilkan pada Kartu Pelajar Digital, Formulir F-PD, dan berkas administrasi murid.
+                  </p>
+                  
+                  <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 pt-1">
+                    <label className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg shadow-xs cursor-pointer transition-colors">
+                      <Upload className="w-3.5 h-3.5" />
+                      <span>{formData.fotoUrl ? 'Ganti Foto 3x4' : 'Upload Foto 3x4'}</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={e => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            if (file.size > 5 * 1024 * 1024) {
+                              alert('Ukuran file foto terlalu besar. Maksimal 5 MB.');
+                              return;
+                            }
+                            const reader = new FileReader();
+                            reader.onload = ev => {
+                              if (ev.target?.result) {
+                                handleChange('fotoUrl', ev.target.result as string);
+                              }
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                      />
+                    </label>
+
+                    {formData.fotoUrl && (
+                      <button
+                        type="button"
+                        onClick={() => handleChange('fotoUrl', '')}
+                        className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-semibold rounded-lg cursor-pointer"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>Hapus Foto</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="font-semibold block mb-1">Nama Siswa Lengkap *</label>
                 <input
@@ -350,7 +413,8 @@ export const StudentFormModal: React.FC<StudentFormModalProps> = ({
                 />
               </div>
             </div>
-          )}
+          </div>
+        )}
 
           {/* STEP 2: ALAMAT & KONTAK */}
           {activeStep === 'alamat' && (
