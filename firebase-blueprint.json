@@ -1,0 +1,33 @@
+{
+  "entities": {
+    "students": {
+      "title": "Students",
+      "description": "Data murid Dapodik SD Negeri Ciburial",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "namaSiswa": { "type": "string" },
+        "rombel": { "type": "string" },
+        "jk": { "type": "string" },
+        "nisn": { "type": "string" },
+        "nipd": { "type": "string" },
+        "ttl": { "type": "string" },
+        "nik": { "type": "string" },
+        "agama": { "type": "string" },
+        "alamat": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "namaSiswa"]
+    },
+    "school_info": {
+      "title": "School Info",
+      "description": "Pengaturan informasi sekolah dasar",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "npsn": { "type": "string" },
+        "kepalaSekolah": { "type": "string" }
+      }
+    }
+  }
+}

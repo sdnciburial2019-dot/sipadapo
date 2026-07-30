@@ -1,0 +1,8 @@
+{
+  "name": "Remix SIPA Dapodik - SD Negeri Ciburial",
+  "description": "Aplikasi Administrasi \u0026 Pendataan Siswa Sekolah Dasar Berbasis Dapodik dengan Cetak Kartu Siswa, Validator AI, \u0026 Form F-PD",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
