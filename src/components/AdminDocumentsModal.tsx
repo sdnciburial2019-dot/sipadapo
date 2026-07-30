@@ -17,7 +17,8 @@ import {
   RotateCcw,
   Sliders,
   Maximize2,
-  Search
+  Search,
+  Check
 } from 'lucide-react';
 import { Student, SchoolInfo } from '../types';
 import { ROMBEL_LIST } from '../data/dapodikOptions';
@@ -71,6 +72,16 @@ export const AdminDocumentsModal: React.FC<AdminDocumentsModalProps> = ({
         (s.nik && s.nik.toLowerCase().includes(term))
     );
   }, [students, studentSearchTerm]);
+
+  // Auto-select first matching student when searching if currently selected student is not in search results
+  useEffect(() => {
+    if (filteredStudentsForPicker.length > 0) {
+      const exists = filteredStudentsForPicker.some(s => s.id === selectedStudentId);
+      if (!exists) {
+        setSelectedStudentId(filteredStudentsForPicker[0].id);
+      }
+    }
+  }, [filteredStudentsForPicker, selectedStudentId]);
 
   // Page Orientation, Margin & Scale State
   const [pageOrientation, setPageOrientation] = useState<'portrait' | 'landscape'>('portrait');
@@ -448,7 +459,13 @@ export const AdminDocumentsModal: React.FC<AdminDocumentsModalProps> = ({
                   <label className="font-semibold text-slate-700 block text-xs">
                     Pilih Murid Target ({filteredStudentsForPicker.length}):
                   </label>
+                  {studentSearchTerm.trim() && filteredStudentsForPicker.length > 0 && (
+                    <span className="text-[10px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                      Auto-pilih hasil pencarian
+                    </span>
+                  )}
                 </div>
+
                 <select
                   value={selectedStudentId}
                   onChange={e => setSelectedStudentId(e.target.value)}
@@ -464,6 +481,38 @@ export const AdminDocumentsModal: React.FC<AdminDocumentsModalProps> = ({
                     ))
                   )}
                 </select>
+
+                {/* Quick Selection List when searching */}
+                {studentSearchTerm.trim() && filteredStudentsForPicker.length > 0 && (
+                  <div className="mt-1 space-y-1 max-h-40 overflow-y-auto border border-slate-200 rounded-xl p-1.5 bg-slate-50">
+                    <div className="text-[10px] text-slate-500 font-medium px-1 pb-1 border-b border-slate-200">
+                      Klik untuk memilih murid dari hasil pencarian:
+                    </div>
+                    {filteredStudentsForPicker.map(s => {
+                      const isSelected = s.id === selectedStudentId;
+                      return (
+                        <button
+                          key={s.id}
+                          type="button"
+                          onClick={() => setSelectedStudentId(s.id)}
+                          className={`w-full text-left p-2 rounded-lg text-xs transition-all flex items-center justify-between cursor-pointer ${
+                            isSelected
+                              ? 'bg-emerald-600 text-white font-bold shadow-xs'
+                              : 'hover:bg-slate-200 text-slate-800 bg-white border border-slate-200'
+                          }`}
+                        >
+                          <div className="truncate pr-2">
+                            <span className="block font-semibold">{s.namaSiswa}</span>
+                            <span className={`text-[10px] ${isSelected ? 'text-emerald-100' : 'text-slate-500'}`}>
+                              Rombel {s.rombel} • NISN: {formatNisn(s.nisn) || '-'}
+                            </span>
+                          </div>
+                          {isSelected && <Check className="w-4 h-4 shrink-0 text-white" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             )}
 
@@ -975,7 +1024,7 @@ export const AdminDocumentsModal: React.FC<AdminDocumentsModalProps> = ({
                       <p>Bandung Barat, {tanggalSurat}</p>
                       <p className="font-bold">Kepala SD Negeri Ciburial</p>
                       <div className="h-16" />
-                      <p className="font-bold underline uppercase">{schoolInfo.kepalaSekolah}</p>
+                      <p className="font-bold underline propercase">{schoolInfo.kepalaSekolah}</p>
                       <p className="text-[11px] font-mono">NIP. {schoolInfo.nipKepala}</p>
                     </div>
                   </div>
@@ -1067,7 +1116,7 @@ export const AdminDocumentsModal: React.FC<AdminDocumentsModalProps> = ({
                       <p>Bandung Barat, {tanggalSurat}</p>
                       <p className="font-bold leading-normal">Kepala Sekolah SD Negeri Ciburial,</p>
                       <div className="h-14" />
-                      <p className="font-bold underline uppercase">{schoolInfo.kepalaSekolah}</p>
+                      <p className="font-bold underline propercase">{schoolInfo.kepalaSekolah}</p>
                       <p className="text-[11px] font-mono">NIP. {schoolInfo.nipKepala}</p>
                     </div>
                   </div>
@@ -1241,7 +1290,7 @@ export const AdminDocumentsModal: React.FC<AdminDocumentsModalProps> = ({
                       <p>Bandung Barat, {tanggalSurat}</p>
                       <p className="font-bold">Kepala SD Negeri Ciburial</p>
                       <div className="h-16" />
-                      <p className="font-bold underline uppercase">{schoolInfo.kepalaSekolah}</p>
+                      <p className="font-bold underline propercase">{schoolInfo.kepalaSekolah}</p>
                       <p className="text-[11px] font-mono">NIP. {schoolInfo.nipKepala}</p>
                     </div>
                   </div>
@@ -1324,7 +1373,7 @@ export const AdminDocumentsModal: React.FC<AdminDocumentsModalProps> = ({
                       <p>Bandung Barat, {tanggalSurat}</p>
                       <p className="font-bold">Kepala {schoolInfo.name}</p>
                       <div className="h-16" />
-                      <p className="font-bold underline uppercase">{schoolInfo.kepalaSekolah}</p>
+                      <p className="font-bold underline propercase">{schoolInfo.kepalaSekolah}</p>
                       <p className="text-[11px] font-mono">NIP. {schoolInfo.nipKepala}</p>
                     </div>
                   </div>
@@ -1396,7 +1445,7 @@ export const AdminDocumentsModal: React.FC<AdminDocumentsModalProps> = ({
                       <p className="font-bold">Kepala {schoolInfo.name}</p>
                       <div className="h-12 flex items-end justify-center">
                         <div>
-                          <p className="font-bold underline uppercase">{schoolInfo.kepalaSekolah}</p>
+                          <p className="font-bold underline propercase">{schoolInfo.kepalaSekolah}</p>
                           <p className="text-[11px] font-mono">NIP. {schoolInfo.nipKepala}</p>
                         </div>
                       </div>
@@ -1487,7 +1536,7 @@ export const AdminDocumentsModal: React.FC<AdminDocumentsModalProps> = ({
                       <p className="font-bold">Kepala {schoolInfo.name}</p>
                       <div className="h-12 flex items-end justify-center">
                         <div>
-                          <p className="font-bold underline uppercase">{schoolInfo.kepalaSekolah}</p>
+                          <p className="font-bold underline propercase">{schoolInfo.kepalaSekolah}</p>
                           <p className="text-[11px] font-mono">NIP. {schoolInfo.nipKepala}</p>
                         </div>
                       </div>
