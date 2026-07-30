@@ -1655,7 +1655,7 @@ export const AdminDocumentsModal: React.FC<AdminDocumentsModalProps> = ({
                               {s.rombel}
                             </td>
                             <td className="border border-slate-900 px-2 py-1">
-                              {s.namaAyah || s.namaIbu || s.namaWali || '-'}
+                              
                             </td>
                             <td className="border border-slate-900 px-1 py-1 w-16 text-[8px] text-slate-400">
                               {idx % 2 === 0 ? `${idx + 1}. .........` : ''}
