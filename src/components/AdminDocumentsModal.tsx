@@ -1699,7 +1699,7 @@ export const AdminDocumentsModal: React.FC<AdminDocumentsModalProps> = ({
                 <div className="space-y-4 font-sans text-slate-900">
                   <div className="text-center space-y-1">
                     <h2 className="text-sm font-bold uppercase tracking-wide border-b border-slate-900 inline-block pb-0.5">
-                      DAFTAR NILAI & REKAPITULASI EVALUASI BELAJAR SISWA
+                      DAFTAR NILAI & REKAPITULASI EVALUASI BELAJAR MURID
                     </h2>
                     <p className="text-xs font-bold text-slate-800 uppercase">
                       MATA PELAJARAN: {mataPelajaran}
@@ -1768,22 +1768,11 @@ export const AdminDocumentsModal: React.FC<AdminDocumentsModalProps> = ({
                     </table>
                   </div>
 
-                  <div className="pt-4 max-w-2xl mx-auto flex justify-between px-8 text-xs font-sans">
-                    <div className="text-center w-56 space-y-1">
-                      <p>Mengetahui,</p>
-                      <p className="font-bold">Kepala {schoolInfo.name}</p>
-                      <div className="h-12 flex items-end justify-center">
-                        <div>
-                          <p className="font-bold underline propercase">{schoolInfo.kepalaSekolah}</p>
-                          <p className="text-[11px] font-mono">NIP. {schoolInfo.nipKepala}</p>
-                        </div>
-                      </div>
-                    </div>
-
+                  <div className="pt-6 flex justify-end px-8 text-xs font-sans">
                     <div className="text-center w-56 space-y-1">
                       <p>Bandung Barat, {tanggalSurat}</p>
-                      <p className="font-bold">Guru / Wali Kelas {selectedRombel}</p>
-                      <div className="h-12 flex items-end justify-center">
+                      <p className="font-bold">Guru / Wali Kelas {selectedRombel === 'semua' ? '' : selectedRombel}</p>
+                      <div className="h-14 flex items-end justify-center">
                         <div>
                           <p className="font-bold underline uppercase">( .................................... )</p>
                           <p className="text-[10px]">NIP. ....................................</p>
