@@ -1,11 +1,12 @@
 import * as XLSX from 'xlsx';
 import { Student, SchoolInfo } from '../types';
 import { INITIAL_STUDENTS } from '../data/initialStudents';
-import { DEFAULT_SCHOOL_INFO } from '../data/dapodikOptions';
+import { DEFAULT_SCHOOL_INFO, ROMBEL_LIST } from '../data/dapodikOptions';
 import { saveAllStudentsToFirestore, saveSchoolInfoToFirestore, clearAllStudentsFromFirestore } from '../lib/firebase';
 
 const STORAGE_KEY_STUDENTS = 'sipa_dapodik_students_v1';
 const STORAGE_KEY_SCHOOL = 'sipa_dapodik_school_v1';
+const STORAGE_KEY_ROMBEL = 'sipa_dapodik_rombel_v1';
 
 export function formatNisn(nisn: string | number | undefined | null): string {
   if (nisn === undefined || nisn === null) return '';
@@ -96,6 +97,29 @@ export function saveSchoolInfo(info: SchoolInfo): void {
     });
   } catch (err) {
     console.error('Error saving school info:', err);
+  }
+}
+
+export function getStoredRombelList(): string[] {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_ROMBEL);
+    if (!raw) return ROMBEL_LIST;
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      return parsed.map((item: any) => String(item).trim()).filter(Boolean);
+    }
+    return ROMBEL_LIST;
+  } catch (err) {
+    return ROMBEL_LIST;
+  }
+}
+
+export function saveRombelList(list: string[]): void {
+  try {
+    const cleanList = list.map(item => String(item).trim()).filter(Boolean);
+    localStorage.setItem(STORAGE_KEY_ROMBEL, JSON.stringify(cleanList));
+  } catch (err) {
+    console.error('Error saving rombel list:', err);
   }
 }
 

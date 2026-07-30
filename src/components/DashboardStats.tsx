@@ -3,24 +3,15 @@ import {
   Users, 
   UserCheck, 
   Award, 
-  TrendingUp, 
-  BarChart3,
-  MapPin,
-  Wallet,
   AlertTriangle,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  LayoutGrid,
+  Filter
 } from 'lucide-react';
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer
-} from 'recharts';
 import { Student } from '../types';
 import { calculateStudentCompleteness } from '../utils/storage';
+import { ROMBEL_LIST } from '../data/dapodikOptions';
 
 interface DashboardStatsProps {
   students: Student[];
@@ -28,41 +19,6 @@ interface DashboardStatsProps {
   onSelectPipFilter: (status: string) => void;
   onSelectIncompleteFilter: () => void;
   selectedCompletenessFilter?: 'all' | 'complete' | 'incomplete';
-}
-
-export function extractDesaKelurahan(s: Student): string {
-  if ((s as any).desaKelurahan && String((s as any).desaKelurahan).trim().length > 0) {
-    let d = String((s as any).desaKelurahan).trim();
-    if (!/^(desa|kelurahan|kel\.|ds\.)/i.test(d)) {
-      d = `Desa ${d}`;
-    }
-    return d;
-  }
-
-  const alamat = (s.alamat || '').trim();
-  if (!alamat) return 'Desa Belum Diisi';
-
-  const matchDesa = alamat.match(/(?:Desa|Kelurahan|Kel\.|Ds\.)\s+([A-Za-z0-9\s]+)/i);
-  if (matchDesa && matchDesa[1]) {
-    let desaName = matchDesa[1].split(/(?:\s+Rt|\s+Rw|\s+Kec|\s+Kab|\s+\d)/i)[0].trim();
-    if (desaName) {
-      return `Desa ${desaName.charAt(0).toUpperCase() + desaName.slice(1)}`;
-    }
-  }
-
-  const knownDesa = [
-    'Cibogo', 'Langensari', 'Lembang', 'Gudangkahuripan', 'Cikole', 
-    'Jayagiri', 'Cikidang', 'Kayuambon', 'Wangunsari', 'Sukajaya', 
-    'Padasuka', 'Cipangeran', 'Mekarwangi', 'Suntenjaya', 'Cikahuripan'
-  ];
-
-  for (const kd of knownDesa) {
-    if (new RegExp(`\\b${kd}\\b`, 'i').test(alamat)) {
-      return `Desa ${kd}`;
-    }
-  }
-
-  return 'Desa Lembang';
 }
 
 export const DashboardStats: React.FC<DashboardStatsProps> = ({
@@ -76,8 +32,8 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
 
   // Compute key metrics
   const total = students.length;
-  const laki = students.filter(s => s.jk === 'Laki-laki').length;
-  const perempuan = students.filter(s => s.jk === 'Perempuan').length;
+  const laki = students.filter(s => s.jk === 'Laki-laki' || s.jk === 'L').length;
+  const perempuan = students.filter(s => s.jk === 'Perempuan' || s.jk === 'P').length;
   const penerimaPip = students.filter(s => s.layakPip === 'Ya' || s.penerimaKip === 'Ya').length;
 
   // Compute completeness
@@ -88,43 +44,25 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
 
   const incompleteCount = completenessList.filter(c => c.percentage < 85).length;
 
-  // Chart Data 1: Rombel Distribution
-  const rombelCounts: Record<string, number> = {};
-  students.forEach(s => {
-    const r = s.rombel || 'Lainnya';
-    rombelCounts[r] = (rombelCounts[r] || 0) + 1;
-  });
+  // Calculate Male and Female counts per Rombel
+  const uniqueRombelsInStudents: string[] = Array.from(new Set(students.map(s => s.rombel).filter(Boolean) as string[]));
+  const rombelsToDisplay: string[] = Array.from(new Set<string>([...ROMBEL_LIST, ...uniqueRombelsInStudents])).sort((a, b) => 
+    a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })
+  );
 
-  const rombelData = Object.keys(rombelCounts)
-    .sort()
-    .map(r => ({
-      name: r,
-      jumlah: rombelCounts[r]
-    }));
+  const rombelGenderData = rombelsToDisplay.map(r => {
+    const rombelStudents = students.filter(s => s.rombel === r);
+    const countL = rombelStudents.filter(s => s.jk === 'Laki-laki' || s.jk === 'L').length;
+    const countP = rombelStudents.filter(s => s.jk === 'Perempuan' || s.jk === 'P').length;
+    const countTotal = rombelStudents.length;
 
-  // Chart Data 2: Address Distribution Berdasarkan Desa / Kelurahan
-  const addressCounts: Record<string, number> = {};
-  students.forEach(s => {
-    const desaName = extractDesaKelurahan(s);
-    addressCounts[desaName] = (addressCounts[desaName] || 0) + 1;
+    return {
+      rombel: r,
+      countL,
+      countP,
+      countTotal
+    };
   });
-  const addressData = Object.keys(addressCounts)
-    .sort()
-    .map(loc => ({
-      name: loc,
-      jumlah: addressCounts[loc]
-    }));
-
-  // Chart Data 3: Father's Income (Penghasilan Ayah)
-  const fatherIncomeCounts: Record<string, number> = {};
-  students.forEach(s => {
-    const inc = s.penghasilanAyah || 'Belum Diisi';
-    fatherIncomeCounts[inc] = (fatherIncomeCounts[inc] || 0) + 1;
-  });
-  const fatherIncomeData = Object.keys(fatherIncomeCounts).map(inc => ({
-    name: inc,
-    jumlah: fatherIncomeCounts[inc]
-  }));
 
   return (
     <div className="bg-slate-900 border-b border-slate-800 py-5 transition-all">
@@ -178,7 +116,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
             </div>
           </div>
 
-          {/* Card 4: Data Belum Lengkap (Replaces Pemegang KPS/PKH) */}
+          {/* Card 4: Data Belum Lengkap */}
           <div 
             onClick={onSelectIncompleteFilter}
             className={`bg-slate-800/90 hover:bg-slate-800 border rounded-xl p-3.5 flex items-center justify-between cursor-pointer transition-all group ${
@@ -234,82 +172,97 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
           </div>
         </div>
 
-        {/* Analytics Section Toggle */}
+        {/* Section Toggle: Jumlah Siswa Laki-Laki & Perempuan per Rombel */}
         <div className="mt-4 flex items-center justify-between border-t border-slate-800/80 pt-3">
-          <div className="flex items-center space-x-2 text-xs text-slate-400 font-semibold uppercase tracking-wider">
-            <BarChart3 className="w-4 h-4 text-emerald-400" />
-            <span>Grafik Analytics & Rekapitulasi Dapodik</span>
+          <div className="flex items-center space-x-2 text-xs text-slate-300 font-bold uppercase tracking-wider">
+            <LayoutGrid className="w-4 h-4 text-emerald-400" />
+            <span>Jumlah Siswa Laki-Laki & Perempuan per Rombel</span>
           </div>
           <button
             onClick={() => setIsExpanded(!isExpanded)}
             className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
           >
-            <span>{isExpanded ? 'Sembunyikan Grafik' : 'Tampilkan Grafik Detail'}</span>
+            <span>{isExpanded ? 'Sembunyikan Cards Rombel' : 'Tampilkan Cards Rombel'}</span>
             {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
           </button>
         </div>
 
-        {/* Detailed Recharts Visualizations */}
+        {/* Cards Grid: Male & Female breakdown per Rombel */}
         {isExpanded && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3 pt-1">
-            {/* Chart 1: Rombel Bar Chart */}
-            <div className="bg-slate-800/60 border border-slate-700/60 rounded-xl p-4">
-              <h4 className="text-xs font-bold text-slate-300 mb-3 flex items-center gap-1.5">
-                <BarChart3 className="w-3.5 h-3.5 text-sky-400" />
-                Jumlah Murid per Rombel (Kelas)
-              </h4>
-              <div className="h-44 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={rombelData}>
-                    <XAxis dataKey="name" stroke="#94a3b8" fontSize={11} tickLine={false} />
-                    <YAxis stroke="#94a3b8" fontSize={11} allowDecimals={false} />
-                    <Tooltip 
-                      contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', borderRadius: '8px', color: '#f8fafc', fontSize: '12px' }}
-                    />
-                    <Bar dataKey="jumlah" fill="#10b981" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
+          <div className="mt-3 pt-1">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+              {rombelGenderData.map(item => {
+                const pctL = item.countTotal > 0 ? Math.round((item.countL / item.countTotal) * 100) : 0;
+                
+                return (
+                  <div
+                    key={item.rombel}
+                    onClick={() => onSelectRombelFilter(item.rombel)}
+                    className="bg-slate-800/80 hover:bg-slate-800 border border-slate-700/80 hover:border-emerald-500/60 rounded-xl p-3 flex flex-col justify-between cursor-pointer transition-all group hover:shadow-md hover:-translate-y-0.5"
+                    title={`Klik untuk memfilter Rombel ${item.rombel}`}
+                  >
+                    <div>
+                      {/* Rombel Title & Total Count Badge */}
+                      <div className="flex items-center justify-between gap-1 mb-2">
+                        <span className="font-black text-slate-100 text-sm tracking-tight group-hover:text-emerald-400 transition-colors">
+                          Kelas {item.rombel}
+                        </span>
+                        <span className="bg-slate-700 text-slate-300 text-[10px] font-mono font-bold px-2 py-0.5 rounded-full shrink-0">
+                          {item.countTotal} Siswa
+                        </span>
+                      </div>
 
-            {/* Chart 2: Sebaran Alamat Murid Berdasarkan Desa / Kelurahan */}
-            <div className="bg-slate-800/60 border border-slate-700/60 rounded-xl p-4">
-              <h4 className="text-xs font-bold text-slate-300 mb-3 flex items-center gap-1.5">
-                <MapPin className="w-3.5 h-3.5 text-pink-400" />
-                Grafik Sebaran Alamat Murid Berdasarkan Desa / Kelurahan
-              </h4>
-              <div className="h-44 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={addressData} layout="vertical">
-                    <XAxis type="number" stroke="#94a3b8" fontSize={11} allowDecimals={false} />
-                    <YAxis dataKey="name" type="category" stroke="#94a3b8" fontSize={10} tickLine={false} width={100} />
-                    <Tooltip 
-                      contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', borderRadius: '8px', color: '#f8fafc', fontSize: '12px' }}
-                    />
-                    <Bar dataKey="jumlah" fill="#ec4899" radius={[0, 4, 4, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
+                      {/* Gender Breakdown Details */}
+                      <div className="space-y-1 my-1.5 text-xs">
+                        <div className="flex items-center justify-between text-blue-400 font-semibold bg-blue-950/40 px-2 py-1 rounded-lg border border-blue-900/30">
+                          <span className="flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
+                            Laki-laki
+                          </span>
+                          <span className="font-mono font-bold">{item.countL}</span>
+                        </div>
 
-            {/* Chart 3: Penghasilan Ayah Murid */}
-            <div className="bg-slate-800/60 border border-slate-700/60 rounded-xl p-4">
-              <h4 className="text-xs font-bold text-slate-300 mb-3 flex items-center gap-1.5">
-                <Wallet className="w-3.5 h-3.5 text-amber-400" />
-                Grafik Penghasilan Ayah Murid
-              </h4>
-              <div className="h-44 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={fatherIncomeData} layout="vertical">
-                    <XAxis type="number" stroke="#94a3b8" fontSize={11} allowDecimals={false} />
-                    <YAxis dataKey="name" type="category" stroke="#94a3b8" fontSize={9} tickLine={false} width={95} />
-                    <Tooltip 
-                      contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', borderRadius: '8px', color: '#f8fafc', fontSize: '12px' }}
-                    />
-                    <Bar dataKey="jumlah" fill="#f59e0b" radius={[0, 4, 4, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
+                        <div className="flex items-center justify-between text-pink-400 font-semibold bg-pink-950/40 px-2 py-1 rounded-lg border border-pink-900/30">
+                          <span className="flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-pink-400"></span>
+                            Perempuan
+                          </span>
+                          <span className="font-mono font-bold">{item.countP}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Proportional Split Progress Bar */}
+                    <div className="mt-2 pt-1">
+                      <div className="w-full bg-slate-700/80 h-2 rounded-full flex overflow-hidden">
+                        {item.countTotal > 0 ? (
+                          <>
+                            <div 
+                              className="bg-blue-500 h-full transition-all duration-300" 
+                              style={{ width: `${pctL}%` }}
+                              title={`Laki-laki: ${pctL}%`}
+                            />
+                            <div 
+                              className="bg-pink-500 h-full transition-all duration-300" 
+                              style={{ width: `${100 - pctL}%` }}
+                              title={`Perempuan: ${100 - pctL}%`}
+                            />
+                          </>
+                        ) : (
+                          <div className="bg-slate-600 h-full w-full" />
+                        )}
+                      </div>
+                      <div className="flex items-center justify-between text-[10px] text-slate-400 font-mono mt-1">
+                        <span>{item.countTotal > 0 ? `${pctL}% L` : '0%'}</span>
+                        <span className="text-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity font-sans font-bold flex items-center gap-0.5">
+                          <Filter className="w-2.5 h-2.5" /> Filter
+                        </span>
+                        <span>{item.countTotal > 0 ? `${100 - pctL}% P` : '0%'}</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
@@ -317,4 +270,5 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
     </div>
   );
 };
+
 

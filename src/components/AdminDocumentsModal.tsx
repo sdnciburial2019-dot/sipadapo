@@ -18,11 +18,14 @@ import {
   Sliders,
   Maximize2,
   Search,
-  Check
+  Check,
+  Plus,
+  Trash2,
+  BookOpen
 } from 'lucide-react';
 import { Student, SchoolInfo } from '../types';
 import { ROMBEL_LIST } from '../data/dapodikOptions';
-import { formatNisn, isStudentMutasi } from '../utils/storage';
+import { formatNisn, isStudentMutasi, getStoredRombelList } from '../utils/storage';
 import { INDONESIAN_MONTHS, getTodayIndonesianDate, generateLetterNumber } from '../utils/letterUtils';
 
 export type DocType = 
@@ -31,7 +34,8 @@ export type DocType =
   | 'mutasi_masuk' 
   | 'mutasi_keluar' 
   | 'pip' 
-  | 'rapat_ortu';
+  | 'rapat_ortu'
+  | 'daftar_nilai';
 
 interface AdminDocumentsModalProps {
   students: Student[];
@@ -98,7 +102,7 @@ export const AdminDocumentsModal: React.FC<AdminDocumentsModalProps> = ({
 
   // Automatically update default orientation based on tab selected
   useEffect(() => {
-    if (activeTab === 'absensi' || activeTab === 'rapat_ortu') {
+    if (activeTab === 'absensi' || activeTab === 'rapat_ortu' || activeTab === 'daftar_nilai') {
       setPageOrientation('landscape');
     } else {
       setPageOrientation('portrait');
@@ -152,6 +156,45 @@ export const AdminDocumentsModal: React.FC<AdminDocumentsModalProps> = ({
   );
   const [hariTanggalRapat, setHariTanggalRapat] = useState<string>('Sabtu, 25 Juli 2026');
   const [waktuTempatRapat, setWaktuTempatRapat] = useState<string>('08:30 WIB - Selesai @ Ruang Kelas SD Negeri Ciburial');
+
+  // 7. Daftar Nilai Specific
+  const [mataPelajaran, setMataPelajaran] = useState<string>('Ilmu Pengetahuan Alam dan Sosial (IPAS)');
+  const [judulPenilaian, setJudulPenilaian] = useState<string>('Penilaian Akhir Semester (PAS) / Sumatif');
+  const [gradeColumns, setGradeColumns] = useState<string[]>([
+    'Tugas 1', 'Tugas 2', 'STS', 'SAS', 'Nilai Akhir'
+  ]);
+  const [newGradeColInput, setNewGradeColInput] = useState<string>('');
+  const [studentScores, setStudentScores] = useState<Record<string, Record<string, string>>>({});
+
+  // Handlers for Grade Columns
+  const handleAddGradeColumn = () => {
+    const trimmed = newGradeColInput.trim();
+    if (!trimmed) return;
+    if (gradeColumns.includes(trimmed)) {
+      alert(`Kolom "${trimmed}" sudah ada.`);
+      return;
+    }
+    setGradeColumns(prev => [...prev, trimmed]);
+    setNewGradeColInput('');
+  };
+
+  const handleDeleteGradeColumn = (index: number) => {
+    setGradeColumns(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleResetGradeColumns = () => {
+    setGradeColumns(['Tugas 1', 'Tugas 2', 'STS', 'SAS', 'Nilai Akhir']);
+  };
+
+  const handleScoreChange = (studentId: string, colName: string, value: string) => {
+    setStudentScores(prev => ({
+      ...prev,
+      [studentId]: {
+        ...(prev[studentId] || {}),
+        [colName]: value
+      }
+    }));
+  };
 
   // Update default fields when currentStudent changes
   useEffect(() => {
@@ -327,6 +370,18 @@ export const AdminDocumentsModal: React.FC<AdminDocumentsModalProps> = ({
           >
             <Users className="w-4 h-4" />
             <span>Daftar Hadir Rapat Ortu</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('daftar_nilai')}
+            className={`px-3 py-2 rounded-lg flex items-center gap-2 shrink-0 transition-all cursor-pointer ${
+              activeTab === 'daftar_nilai'
+                ? 'bg-emerald-500 text-slate-950 font-bold shadow-sm'
+                : 'hover:bg-slate-700 text-slate-300'
+            }`}
+          >
+            <BookOpen className="w-4 h-4" />
+            <span>Daftar Nilai Siswa</span>
           </button>
         </div>
 
@@ -517,7 +572,7 @@ export const AdminDocumentsModal: React.FC<AdminDocumentsModalProps> = ({
             )}
 
             {/* Rombel Picker for Group Documents */}
-            {['absensi', 'rapat_ortu'].includes(activeTab) && (
+            {['absensi', 'rapat_ortu', 'daftar_nilai'].includes(activeTab) && (
               <div className="space-y-1">
                 <label className="font-semibold text-slate-700 block">Pilih Rombel / Kelas:</label>
                 <select
@@ -526,7 +581,7 @@ export const AdminDocumentsModal: React.FC<AdminDocumentsModalProps> = ({
                   className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500"
                 >
                   <option value="semua">Semua Rombel ({students.length} Murid)</option>
-                  {ROMBEL_LIST.map(r => {
+                  {getStoredRombelList().map(r => {
                     const cnt = students.filter(s => s.rombel === r).length;
                     return (
                       <option key={r} value={r}>
@@ -837,6 +892,100 @@ export const AdminDocumentsModal: React.FC<AdminDocumentsModalProps> = ({
                     onChange={e => setWaktuTempatRapat(e.target.value)}
                     className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800"
                   />
+                </div>
+              </>
+            )}
+
+            {/* Daftar Nilai Controls */}
+            {activeTab === 'daftar_nilai' && (
+              <>
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700 block">Mata Pelajaran / Mapel:</label>
+                  <input
+                    type="text"
+                    value={mataPelajaran}
+                    onChange={e => setMataPelajaran(e.target.value)}
+                    placeholder="Contoh: Bahasa Indonesia, IPAS, Matematika..."
+                    className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 font-bold"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700 block">Judul / Jenis Penilaian:</label>
+                  <input
+                    type="text"
+                    value={judulPenilaian}
+                    onChange={e => setJudulPenilaian(e.target.value)}
+                    placeholder="Contoh: Sumatif Akhir Semester (SAS)"
+                    className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800"
+                  />
+                </div>
+
+                {/* Custom Grade Columns Section */}
+                <div className="space-y-2 pt-2 border-t border-slate-200">
+                  <div className="flex items-center justify-between">
+                    <label className="font-bold text-slate-800 block text-xs">
+                      Custom Kolom Nilai ({gradeColumns.length})
+                    </label>
+                    <button
+                      type="button"
+                      onClick={handleResetGradeColumns}
+                      className="text-[10px] text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-2 py-0.5 rounded border border-slate-300 flex items-center gap-1 cursor-pointer"
+                    >
+                      <RotateCcw className="w-2.5 h-2.5" /> Reset Default
+                    </button>
+                  </div>
+
+                  {/* Input Tambah Kolom Nilai */}
+                  <div className="flex items-center gap-1.5">
+                    <input
+                      type="text"
+                      value={newGradeColInput}
+                      onChange={e => setNewGradeColInput(e.target.value)}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleAddGradeColumn();
+                        }
+                      }}
+                      placeholder="Nama kolom baru..."
+                      className="flex-1 p-1.5 bg-slate-50 border border-slate-300 rounded text-xs"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddGradeColumn}
+                      className="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded text-xs flex items-center gap-1 cursor-pointer shrink-0"
+                    >
+                      <Plus className="w-3.5 h-3.5" /> Tambah
+                    </button>
+                  </div>
+
+                  {/* List Columns Chips */}
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {gradeColumns.map((col, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center gap-1 bg-slate-100 border border-slate-300 rounded-md px-2 py-1 text-[11px] font-semibold text-slate-800 shadow-2xs"
+                      >
+                        <span>{col}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteGradeColumn(idx)}
+                          className="text-slate-400 hover:text-rose-600 p-0.5 cursor-pointer rounded"
+                          title="Hapus Kolom"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="p-2 bg-amber-50 border border-amber-200 rounded-lg text-[11px] text-amber-900 mt-2">
+                    <span className="font-bold block">📌 Kolom Keterangan:</span>
+                    <p className="text-[10px] leading-tight text-amber-800">
+                      Kolom akhir <strong>"Keterangan"</strong> otomatis ditambahkan di posisi paling kanan tabel.
+                    </p>
+                  </div>
                 </div>
               </>
             )}
@@ -1538,6 +1687,106 @@ export const AdminDocumentsModal: React.FC<AdminDocumentsModalProps> = ({
                         <div>
                           <p className="font-bold underline propercase">{schoolInfo.kepalaSekolah}</p>
                           <p className="text-[11px] font-mono">NIP. {schoolInfo.nipKepala}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* DOKUMEN 7: DAFTAR NILAI SISWA */}
+              {activeTab === 'daftar_nilai' && (
+                <div className="space-y-4 font-sans text-slate-900">
+                  <div className="text-center space-y-1">
+                    <h2 className="text-sm font-bold uppercase tracking-wide border-b border-slate-900 inline-block pb-0.5">
+                      DAFTAR NILAI & REKAPITULASI EVALUASI BELAJAR SISWA
+                    </h2>
+                    <p className="text-xs font-bold text-slate-800 uppercase">
+                      MATA PELAJARAN: {mataPelajaran}
+                    </p>
+                  </div>
+
+                  <div className="border border-slate-300 rounded p-2 text-xs grid grid-cols-2 md:grid-cols-4 gap-2 bg-slate-50/50">
+                    <div>Penilaian: <strong>{judulPenilaian}</strong></div>
+                    <div>Kelas / Rombel: <strong>{selectedRombel === 'semua' ? 'Semua Rombel' : `Kelas ${selectedRombel}`}</strong></div>
+                    <div>Semester: <strong>{schoolInfo.semester}</strong></div>
+                    <div>Tahun Ajaran: <strong>{schoolInfo.tahunAjaran}</strong></div>
+                  </div>
+
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse border border-slate-900 text-[10px]">
+                      <thead className="bg-slate-100 font-bold uppercase text-[9px] text-center">
+                        <tr>
+                          <th className="border border-slate-900 px-1 py-1 w-6">No</th>
+                          <th className="border border-slate-900 px-1.5 py-1 w-20">NISN</th>
+                          <th className="border border-slate-900 px-2 py-1 text-left">Nama Murid</th>
+                          <th className="border border-slate-900 px-1 py-1 w-6">L/P</th>
+                          {gradeColumns.map((col, idx) => (
+                            <th key={idx} className="border border-slate-900 px-2 py-1 min-w-16">
+                              {col}
+                            </th>
+                          ))}
+                          <th className="border border-slate-900 px-2 py-1 w-32 bg-amber-50 text-amber-950 font-bold">
+                            Keterangan
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {rombelStudents.map((s, idx) => (
+                          <tr key={s.id} className="hover:bg-slate-50">
+                            <td className="border border-slate-900 px-1 py-1 text-center font-semibold">{idx + 1}</td>
+                            <td className="border border-slate-900 px-1.5 py-1 text-center font-mono text-[9px]">
+                              {s.nisn || '-'}
+                            </td>
+                            <td className="border border-slate-900 px-2 py-1 font-bold uppercase">
+                              {s.namaSiswa}
+                            </td>
+                            <td className="border border-slate-900 px-1 py-1 text-center">
+                              {s.jk === 'Laki-laki' ? 'L' : 'P'}
+                            </td>
+                            {gradeColumns.map((col, colIdx) => (
+                              <td key={colIdx} className="border border-slate-900 p-0 text-center">
+                                <input
+                                  type="text"
+                                  value={studentScores[s.id]?.[col] || ''}
+                                  onChange={e => handleScoreChange(s.id, col, e.target.value)}
+                                  className="w-full h-full px-1 py-1 text-center font-bold text-[10px] focus:outline-none focus:bg-amber-100 bg-transparent border-0"
+                                />
+                              </td>
+                            ))}
+                            <td className="border border-slate-900 p-0 bg-amber-50/30">
+                              <input
+                                type="text"
+                                value={studentScores[s.id]?.['keterangan'] || ''}
+                                onChange={e => handleScoreChange(s.id, 'keterangan', e.target.value)}
+                                className="w-full h-full px-1.5 py-1 text-xs focus:outline-none focus:bg-amber-100 bg-transparent border-0 font-medium"
+                              />
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div className="pt-4 max-w-2xl mx-auto flex justify-between px-8 text-xs font-sans">
+                    <div className="text-center w-56 space-y-1">
+                      <p>Mengetahui,</p>
+                      <p className="font-bold">Kepala {schoolInfo.name}</p>
+                      <div className="h-12 flex items-end justify-center">
+                        <div>
+                          <p className="font-bold underline propercase">{schoolInfo.kepalaSekolah}</p>
+                          <p className="text-[11px] font-mono">NIP. {schoolInfo.nipKepala}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="text-center w-56 space-y-1">
+                      <p>Bandung Barat, {tanggalSurat}</p>
+                      <p className="font-bold">Guru / Wali Kelas {selectedRombel}</p>
+                      <div className="h-12 flex items-end justify-center">
+                        <div>
+                          <p className="font-bold underline uppercase">( .................................... )</p>
+                          <p className="text-[10px]">NIP. ....................................</p>
                         </div>
                       </div>
                     </div>
