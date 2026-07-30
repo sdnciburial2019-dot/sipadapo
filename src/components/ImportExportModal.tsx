@@ -10,11 +10,14 @@ import {
   AlertCircle,
   Upload,
   FileCode,
-  Table
+  Table,
+  Trash2,
+  ShieldAlert
 } from 'lucide-react';
 import { Student } from '../types';
 import { exportToExcel, parseTsvOrCsv, parseExcelFile, downloadExcelTemplate, saveStudents } from '../utils/storage';
 import { INITIAL_STUDENTS } from '../data/initialStudents';
+import { clearAllStudentsFromFirestore, seedInitialStudents, saveAllStudentsToFirestore } from '../lib/firebase';
 
 interface ImportExportModalProps {
   students: Student[];
@@ -135,11 +138,49 @@ export const ImportExportModal: React.FC<ImportExportModalProps> = ({
     setSelectedFileName('');
   };
 
-  const handleResetToDefault = () => {
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [confirmInputText, setConfirmInputText] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleResetToDefault = async () => {
     if (confirm('Apakah Anda yakin ingin mengembalikan data ke sampel awal Dapodik? Data baru yang Anda ubah akan terhapus.')) {
-      saveStudents(INITIAL_STUDENTS);
-      onStudentsUpdated(INITIAL_STUDENTS);
-      setMsg({ type: 'success', text: 'Database berhasil di-reset ke data sampel Dapodik awal.' });
+      try {
+        const seeded = await seedInitialStudents();
+        saveStudents(seeded);
+        onStudentsUpdated(seeded);
+        setMsg({ type: 'success', text: 'Database berhasil di-reset ke data sampel Dapodik awal.' });
+      } catch (err) {
+        console.error('Error resetting to sample:', err);
+        saveStudents(INITIAL_STUDENTS);
+        onStudentsUpdated(INITIAL_STUDENTS);
+        setMsg({ type: 'success', text: 'Database berhasil di-reset ke data sampel lokal.' });
+      }
+    }
+  };
+
+  const handleClearDatabase = async () => {
+    if (confirmInputText.trim().toUpperCase() !== 'HAPUS') {
+      alert("Kata kunci konfirmasi tidak sesuai. Harap ketik 'HAPUS' untuk mengonfirmasi.");
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      await clearAllStudentsFromFirestore();
+      saveStudents([]);
+      onStudentsUpdated([]);
+      setMsg({ type: 'success', text: 'Seluruh data murid telah berhasil dihapus dari database lokal & cloud.' });
+      setShowClearConfirm(false);
+      setConfirmInputText('');
+    } catch (err) {
+      console.error('Gagal menghapus database:', err);
+      saveStudents([]);
+      onStudentsUpdated([]);
+      setMsg({ type: 'success', text: 'Data murid di penyimpanan lokal telah dikosongkan.' });
+      setShowClearConfirm(false);
+      setConfirmInputText('');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -394,39 +435,115 @@ export const ImportExportModal: React.FC<ImportExportModalProps> = ({
             </div>
           )}
 
-          {/* TAB 3: BACKUP */}
+          {/* TAB 3: BACKUP & DATABASE MANAGEMENT */}
           {activeTab === 'backup' && (
             <div className="space-y-4">
-              <div className="bg-white p-5 rounded-xl border border-slate-200 flex items-center justify-between">
+              <div className="bg-white p-5 rounded-xl border border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                 <div>
                   <h4 className="font-bold text-slate-900 text-sm">Unduh Backup File JSON</h4>
-                  <p className="text-slate-500 mt-0.5">Simpan cadangan lengkap struktur JSON untuk pemulihan di lain waktu.</p>
+                  <p className="text-slate-500 text-xs mt-0.5">Simpan cadangan lengkap data {students.length} murid ke file format JSON.</p>
                 </div>
                 <button
                   onClick={handleDownloadBackupJson}
-                  className="px-4 py-2 bg-purple-900 hover:bg-purple-800 text-white font-bold rounded-lg cursor-pointer"
+                  className="px-4 py-2 bg-purple-900 hover:bg-purple-800 text-white font-bold rounded-lg cursor-pointer shrink-0"
                 >
                   Unduh JSON
                 </button>
               </div>
 
-              <div className="bg-rose-50 p-5 rounded-xl border border-rose-200 flex items-center justify-between text-rose-950">
+              <div className="bg-slate-100 p-5 rounded-xl border border-slate-300 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                 <div>
-                  <h4 className="font-bold text-sm">Reset Database ke Sample Awal</h4>
-                  <p className="text-rose-700 mt-0.5">Kembalikan data ke kondisi awal sampel Dapodik.</p>
+                  <h4 className="font-bold text-slate-900 text-sm">Reset Database ke Sample Awal</h4>
+                  <p className="text-slate-600 text-xs mt-0.5">Kembalikan data ke kondisi awal sampel Dapodik (misal: untuk demonstrasi).</p>
                 </div>
                 <button
                   onClick={handleResetToDefault}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-lg cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-lg cursor-pointer shrink-0"
                 >
                   <RefreshCw className="w-4 h-4" />
-                  Reset Database
+                  Reset ke Sample
+                </button>
+              </div>
+
+              {/* DANGER ZONE: Hapus Database */}
+              <div className="bg-rose-50 p-5 rounded-xl border-2 border-rose-300 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div className="space-y-1">
+                  <h4 className="font-bold text-rose-900 text-sm flex items-center gap-2">
+                    <Trash2 className="w-4 h-4 text-rose-600" />
+                    Hapus / Kosongkan Database Murid
+                  </h4>
+                  <p className="text-rose-700 text-xs">
+                    Menghapus SELURUH data murid ({students.length} siswa) secara permanen dari database lokal & Firebase Cloud.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowClearConfirm(true)}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-lg shadow-md transition-all cursor-pointer shrink-0 active:scale-95"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Hapus Database
                 </button>
               </div>
             </div>
           )}
         </div>
       </div>
+
+      {/* MODAL KONFIRMASI HAPUS DATABASE */}
+      {showClearConfirm && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4 z-60 animate-fadeIn">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-rose-200 space-y-4">
+            <div className="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto">
+              <ShieldAlert className="w-7 h-7" />
+            </div>
+
+            <div className="text-center space-y-2">
+              <h3 className="text-base font-black text-rose-950">Konfirmasi Hapus Seluruh Database</h3>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Tindakan ini akan <strong>MENGHAPUS PERMANEN {students.length} DATA MURID</strong> dari penyimpanan lokal browser dan server Firebase Cloud.
+              </p>
+            </div>
+
+            <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 space-y-1">
+              <p className="font-bold">⚠️ Ketik kata 'HAPUS' di bawah ini untuk mengonfirmasi:</p>
+              <input
+                type="text"
+                value={confirmInputText}
+                onChange={e => setConfirmInputText(e.target.value)}
+                placeholder="Ketik HAPUS"
+                className="w-full p-2 bg-white border border-amber-300 rounded-lg text-center font-black tracking-widest uppercase text-rose-700"
+              />
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowClearConfirm(false);
+                  setConfirmInputText('');
+                }}
+                className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-xl text-xs cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                disabled={confirmInputText.trim().toUpperCase() !== 'HAPUS' || isDeleting}
+                onClick={handleClearDatabase}
+                className={`px-5 py-2 rounded-xl text-xs font-bold text-white shadow-md flex items-center gap-1.5 transition-all cursor-pointer ${
+                  confirmInputText.trim().toUpperCase() === 'HAPUS' && !isDeleting
+                    ? 'bg-rose-600 hover:bg-rose-500 ring-2 ring-rose-600/30'
+                    : 'bg-slate-300 text-slate-500 cursor-not-allowed opacity-60'
+                }`}
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                {isDeleting ? 'Menghapus...' : 'Ya, Hapus Semua Data'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

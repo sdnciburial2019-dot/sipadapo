@@ -2,7 +2,7 @@ import * as XLSX from 'xlsx';
 import { Student, SchoolInfo } from '../types';
 import { INITIAL_STUDENTS } from '../data/initialStudents';
 import { DEFAULT_SCHOOL_INFO } from '../data/dapodikOptions';
-import { saveAllStudentsToFirestore, saveSchoolInfoToFirestore } from '../lib/firebase';
+import { saveAllStudentsToFirestore, saveSchoolInfoToFirestore, clearAllStudentsFromFirestore } from '../lib/firebase';
 
 const STORAGE_KEY_STUDENTS = 'sipa_dapodik_students_v1';
 const STORAGE_KEY_SCHOOL = 'sipa_dapodik_school_v1';
@@ -40,17 +40,20 @@ export function isStudentAktif(s: Student): boolean {
 export function getStoredStudents(): Student[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY_STUDENTS);
-    if (!raw) {
+    if (raw === null) {
+      if (localStorage.getItem('sipa_dapodik_has_initialized') === 'true' || localStorage.getItem('sipa_dapodik_cleared') === 'true') {
+        return [];
+      }
       const formatted = INITIAL_STUDENTS.map(s => ({ ...s, nisn: formatNisn(s.nisn) }));
       saveStudents(formatted);
       return formatted;
     }
     const parsed = JSON.parse(raw);
-    const list = Array.isArray(parsed) && parsed.length > 0 ? parsed : INITIAL_STUDENTS;
+    const list = Array.isArray(parsed) ? parsed : INITIAL_STUDENTS;
     return list.map((s: Student) => ({ ...s, nisn: formatNisn(s.nisn) }));
   } catch (err) {
     console.error('Error reading students from storage:', err);
-    return INITIAL_STUDENTS.map(s => ({ ...s, nisn: formatNisn(s.nisn) }));
+    return [];
   }
 }
 
@@ -58,9 +61,18 @@ export function saveStudents(students: Student[]): void {
   try {
     const formatted = students.map(s => ({ ...s, nisn: formatNisn(s.nisn) }));
     localStorage.setItem(STORAGE_KEY_STUDENTS, JSON.stringify(formatted));
-    saveAllStudentsToFirestore(formatted).catch(err => {
-      console.warn('Firestore async sync warning:', err);
-    });
+    localStorage.setItem('sipa_dapodik_has_initialized', 'true');
+    if (formatted.length === 0) {
+      localStorage.setItem('sipa_dapodik_cleared', 'true');
+      clearAllStudentsFromFirestore().catch(err => {
+        console.warn('Firestore async clear warning:', err);
+      });
+    } else {
+      localStorage.removeItem('sipa_dapodik_cleared');
+      saveAllStudentsToFirestore(formatted).catch(err => {
+        console.warn('Firestore async sync warning:', err);
+      });
+    }
   } catch (err) {
     console.error('Error saving students to storage:', err);
   }
