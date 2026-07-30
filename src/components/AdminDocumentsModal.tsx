@@ -1601,11 +1601,11 @@ export const AdminDocumentsModal: React.FC<AdminDocumentsModalProps> = ({
                     </div>
 
                     <div className="text-center w-56 space-y-1">
-                      <p>Bandung Barat, {tanggalSurat}</p>
+                      <p>.................., ....................................</p>
                       <p className="font-bold">Guru / Wali Kelas {selectedRombel}</p>
                       <div className="h-12 flex items-end justify-center">
                         <div>
-                          <p className="font-bold underline uppercase">( .................................... )</p>
+                          <p className="font-bold underline uppercase">....................................</p>
                           <p className="text-[10px]">NIP. ....................................</p>
                         </div>
                       </div>
@@ -1675,13 +1675,13 @@ export const AdminDocumentsModal: React.FC<AdminDocumentsModalProps> = ({
                       <p className="font-bold">Komite Sekolah</p>
                       <div className="h-12 flex items-end justify-center">
                         <div>
-                          <p className="font-bold underline uppercase">( .................................... )</p>
+                          <p className="font-bold underline uppercase">....................................</p>
                         </div>
                       </div>
                     </div>
 
                     <div className="text-center w-56 space-y-1">
-                      <p>Bandung Barat, {tanggalSurat}</p>
+                      <p>................., ...........................</p>
                       <p className="font-bold">Kepala {schoolInfo.name}</p>
                       <div className="h-12 flex items-end justify-center">
                         <div>
@@ -1770,11 +1770,11 @@ export const AdminDocumentsModal: React.FC<AdminDocumentsModalProps> = ({
 
                   <div className="pt-6 flex justify-end px-8 text-xs font-sans">
                     <div className="text-center w-56 space-y-1">
-                      <p>Bandung Barat, {tanggalSurat}</p>
+                      <p>................, .....................</p>
                       <p className="font-bold">Guru / Wali Kelas {selectedRombel === 'semua' ? '' : selectedRombel}</p>
                       <div className="h-14 flex items-end justify-center">
                         <div>
-                          <p className="font-bold underline uppercase">( .................................... )</p>
+                          <p className="font-bold underline uppercase">....................................</p>
                           <p className="text-[10px]">NIP. ....................................</p>
                         </div>
                       </div>
