@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Search, 
   Filter, 
@@ -17,7 +17,9 @@ import {
   AlertCircle,
   AlertTriangle,
   X,
-  Activity
+  Activity,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { Student, FilterOptions } from '../types';
 import { ROMBEL_LIST } from '../data/dapodikOptions';
@@ -76,6 +78,26 @@ export const StudentTable: React.FC<StudentTableProps> = ({
     pip: true,
     kelengkapan: true,
   });
+
+  // Pagination & Page Size state (10, 50, 100, 'all')
+  const [pageSize, setPageSize] = useState<number | 'all'>(50);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+
+  // Reset page to 1 when filters or student count changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters.search, filters.rombel, filters.jk, filters.pipStatus, filters.dataCompleteness, students.length]);
+
+  const totalStudents = students.length;
+  const isAll = pageSize === 'all';
+  const limit = isAll ? totalStudents || 1 : pageSize;
+  const totalPages = isAll ? 1 : Math.max(1, Math.ceil(totalStudents / limit));
+  const validPage = Math.min(currentPage, totalPages);
+
+  const startIndex = totalStudents === 0 ? 0 : isAll ? 0 : (validPage - 1) * limit;
+  const endIndex = isAll ? totalStudents : Math.min(startIndex + limit, totalStudents);
+
+  const displayedStudents = isAll ? students : students.slice(startIndex, endIndex);
 
   const isAllSelected = students.length > 0 && selectedIds.length === students.length;
 
@@ -158,6 +180,25 @@ export const StudentTable: React.FC<StudentTableProps> = ({
                 <span>Update Data Fisik</span>
               </button>
             )}
+
+            {/* Rows Per Page Selector (10, 50, 100, Semua) */}
+            <div className="flex items-center gap-1.5 px-2.5 py-2 bg-white border border-slate-300 rounded-lg text-xs font-medium text-slate-700 shadow-xs">
+              <span className="text-slate-500 hidden sm:inline">Baris:</span>
+              <select
+                value={pageSize}
+                onChange={e => {
+                  const val = e.target.value === 'all' ? 'all' : Number(e.target.value);
+                  setPageSize(val);
+                  setCurrentPage(1);
+                }}
+                className="bg-transparent font-bold text-emerald-800 focus:outline-none cursor-pointer"
+              >
+                <option value={10}>10</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+                <option value="all">Semua</option>
+              </select>
+            </div>
 
             {/* Column Picker Button */}
             <div className="relative">
@@ -341,7 +382,7 @@ export const StudentTable: React.FC<StudentTableProps> = ({
                 </td>
               </tr>
             ) : (
-              students.map((student, idx) => {
+              displayedStudents.map((student, idx) => {
                 const isSelected = selectedIds.includes(student.id);
                 const { percentage } = calculateStudentCompleteness(student);
                 const isPip = student.layakPip === 'Ya' || student.penerimaKip === 'Ya';
@@ -367,7 +408,7 @@ export const StudentTable: React.FC<StudentTableProps> = ({
                     </td>
 
                     <td className="p-3 text-center text-slate-400 font-mono">
-                      {idx + 1}
+                      {startIndex + idx + 1}
                     </td>
 
                     <td className="p-3">
@@ -506,14 +547,92 @@ export const StudentTable: React.FC<StudentTableProps> = ({
         </table>
       </div>
 
-      {/* Footer Info & Counter */}
-      <div className="px-4 py-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500">
-        <div>
-          Menampilkan <span className="font-semibold text-slate-800">{students.length}</span> murid
+      {/* Footer Info & Counter & Pagination */}
+      <div className="px-4 py-3 bg-slate-50 border-t border-slate-200 flex flex-col md:flex-row items-center justify-between gap-3 text-xs text-slate-600">
+        <div className="flex flex-wrap items-center gap-3">
+          <div>
+            Menampilkan <span className="font-bold text-slate-900">{totalStudents === 0 ? 0 : startIndex + 1}</span> - <span className="font-bold text-slate-900">{endIndex}</span> dari <span className="font-bold text-slate-900">{totalStudents}</span> murid
+          </div>
+
+          <div className="flex items-center gap-1.5 bg-white border border-slate-300 rounded-lg px-2.5 py-1 shadow-2xs">
+            <span className="text-[11px] text-slate-500 font-medium">Tampilan baris:</span>
+            <select
+              value={pageSize}
+              onChange={e => {
+                const val = e.target.value === 'all' ? 'all' : Number(e.target.value);
+                setPageSize(val);
+                setCurrentPage(1);
+              }}
+              className="bg-transparent font-bold text-emerald-800 text-xs focus:outline-none cursor-pointer"
+            >
+              <option value={10}>10 Baris</option>
+              <option value={50}>50 Baris</option>
+              <option value={100}>100 Baris</option>
+              <option value="all">Semua Baris</option>
+            </select>
+          </div>
         </div>
-        <div className="flex items-center gap-2 text-[11px] text-slate-400">
-          <span>* Klik nama murid untuk melihat biodata lengkap</span>
-        </div>
+
+        {/* Pagination Navigation (Only when not 'all' and totalPages > 1) */}
+        {!isAll && totalPages > 1 ? (
+          <div className="flex items-center space-x-1.5">
+            <button
+              type="button"
+              disabled={validPage <= 1}
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              className="px-2.5 py-1 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed font-medium text-slate-700 shadow-2xs transition-colors cursor-pointer flex items-center gap-1"
+            >
+              <ChevronLeft className="w-3.5 h-3.5" />
+              <span>Sebelumnya</span>
+            </button>
+
+            <div className="flex items-center space-x-1 font-mono text-xs font-semibold">
+              {Array.from({ length: totalPages }, (_, i) => i + 1)
+                .filter(p => p === 1 || p === totalPages || Math.abs(p - validPage) <= 1)
+                .reduce<(number | string)[]>((acc, p, i, arr) => {
+                  if (i > 0 && typeof arr[i - 1] === 'number' && (p as number) - (arr[i - 1] as number) > 1) {
+                    acc.push('...');
+                  }
+                  acc.push(p);
+                  return acc;
+                }, [])
+                .map((item, index) => {
+                  if (item === '...') {
+                    return <span key={`dots-${index}`} className="px-1 text-slate-400">...</span>;
+                  }
+                  const p = item as number;
+                  return (
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => setCurrentPage(p)}
+                      className={`w-7 h-7 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                        p === validPage
+                          ? 'bg-emerald-600 text-white shadow-xs'
+                          : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  );
+                })}
+            </div>
+
+            <button
+              type="button"
+              disabled={validPage >= totalPages}
+              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              className="px-2.5 py-1 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed font-medium text-slate-700 shadow-2xs transition-colors cursor-pointer flex items-center gap-1"
+            >
+              <span>Selanjutnya</span>
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        ) : (
+          <div className="text-[11px] text-slate-400">
+            * Klik nama murid untuk melihat biodata lengkap
+          </div>
+        )}
       </div>
 
       {/* Modal Bulk Rombel / Promotion */}

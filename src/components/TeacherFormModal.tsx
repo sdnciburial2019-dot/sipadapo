@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { X, User, Briefcase, MapPin, CreditCard, Save } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, User, Briefcase, MapPin, CreditCard, Save, Camera, Upload, Trash2 } from 'lucide-react';
 import { Teacher } from '../types';
 
 interface TeacherFormModalProps {
@@ -74,6 +74,70 @@ export const TeacherFormModal: React.FC<TeacherFormModalProps> = ({
       fotoUrl: ''
     };
   });
+
+  useEffect(() => {
+    if (isOpen) {
+      if (teacherToEdit) {
+        setFormData({ ...teacherToEdit });
+      } else {
+        setFormData({
+          id: `ptk-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+          nama: '',
+          nuptk: '',
+          jk: 'Laki-laki',
+          tempatLahir: '',
+          tanggalLahir: '',
+          nip: '',
+          statusKepegawaian: 'PNS',
+          jenisPtk: 'Guru Kelas',
+          agama: 'Islam',
+          alamatJalan: '',
+          rt: '',
+          rw: '',
+          dusun: '',
+          desa: '',
+          kecamatan: 'Kec. Lembang',
+          kodePos: '40391',
+          telepon: '',
+          hp: '',
+          email: '',
+          tugasTambahan: '',
+          skCpns: '',
+          tanggalCpns: '',
+          skPengangkatan: '',
+          tmtPengangkatan: '',
+          lembagaPengangkatan: 'Pemerintah Kab/Kota',
+          pangkatGolongan: 'III/a',
+          sumberGaji: 'APBN',
+          namaIbuKandung: '',
+          statusPerkawinan: 'Kawin',
+          namaSuamiIstri: '',
+          nipSuamiIstri: '',
+          pekerjaanSuamiIstri: '',
+          tmtPns: '',
+          lisensiKepalaSekolah: 'Tidak',
+          diklatKepengawasan: 'Tidak',
+          keahlianBraille: 'Tidak',
+          keahlianBahasaIsyarat: 'Tidak',
+          npwp: '',
+          namaWajibPajak: '',
+          kewarganegaraan: 'ID',
+          bank: 'Bank Jabar Banten (BJB)',
+          noRekening: '',
+          rekeningAtasNama: '',
+          nik: '',
+          noKk: '',
+          karpeg: '',
+          karisKarsu: '',
+          lintang: '',
+          bujur: '',
+          nuks: '',
+          fotoUrl: ''
+        });
+      }
+      setActiveTab('identitas');
+    }
+  }, [isOpen, teacherToEdit]);
 
   if (!isOpen) return null;
 
@@ -179,6 +243,66 @@ export const TeacherFormModal: React.FC<TeacherFormModalProps> = ({
           {/* TAB 1: IDENTITAS DIRI */}
           {activeTab === 'identitas' && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+              {/* Photo Upload Section */}
+              <div className="md:col-span-2 bg-emerald-50/70 p-4 rounded-xl border border-emerald-200/80 flex flex-col sm:flex-row items-center gap-4">
+                <div className="w-20 h-24 bg-red-600 rounded-lg p-0.5 border-2 border-white shadow-md shrink-0 flex items-center justify-center relative overflow-hidden">
+                  {formData.fotoUrl ? (
+                    <img src={formData.fotoUrl} alt="Foto PTK" className="w-full h-full object-cover rounded-md" />
+                  ) : (
+                    <div className="text-center text-white p-1">
+                      <Camera className="w-6 h-6 mx-auto mb-1 opacity-90" />
+                      <span className="text-[9px] font-bold block uppercase leading-tight">Foto 3x4</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex-1 space-y-1.5 text-center sm:text-left">
+                  <h4 className="font-bold text-slate-800 text-xs">Pas Foto Digital Guru / PTK (Format 3x4)</h4>
+                  <p className="text-[11px] text-slate-600">
+                    Foto ini akan ditampilkan pada Kartu Identitas PTK, Profil Guru, dan berkas cetak Dapodik.
+                  </p>
+                  
+                  <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 pt-1">
+                    <label className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-xs cursor-pointer transition-colors">
+                      <Upload className="w-3.5 h-3.5" />
+                      <span>{formData.fotoUrl ? 'Ganti Foto 3x4' : 'Upload Foto 3x4'}</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={e => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            if (file.size > 5 * 1024 * 1024) {
+                              alert('Ukuran file foto terlalu besar. Maksimal 5 MB.');
+                              return;
+                            }
+                            const reader = new FileReader();
+                            reader.onload = ev => {
+                              if (ev.target?.result) {
+                                setFormData(prev => ({ ...prev, fotoUrl: ev.target!.result as string }));
+                              }
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                      />
+                    </label>
+
+                    {formData.fotoUrl && (
+                      <button
+                        type="button"
+                        onClick={() => setFormData(prev => ({ ...prev, fotoUrl: '' }))}
+                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-semibold rounded-lg cursor-pointer transition-colors"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>Hapus Foto</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
               <div>
                 <label className="block font-semibold text-slate-700 mb-1">Nama Lengkap (Sesuai Ijazah/KTP) *</label>
                 <input
@@ -290,18 +414,6 @@ export const TeacherFormModal: React.FC<TeacherFormModalProps> = ({
                   value={formData.namaIbuKandung || ''}
                   onChange={handleChange}
                   placeholder="Nama Ibu Kandung"
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                />
-              </div>
-
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">URL Foto Pas (3x4)</label>
-                <input
-                  type="text"
-                  name="fotoUrl"
-                  value={formData.fotoUrl || ''}
-                  onChange={handleChange}
-                  placeholder="https://example.com/foto.jpg"
                   className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 />
               </div>
