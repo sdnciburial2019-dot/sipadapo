@@ -135,3 +135,64 @@ export interface GeneratedLetter {
   penutup: string;
   tujuanMaksud: string;
 }
+
+export type PtkType = 'Guru Kelas' | 'Guru Mapel' | 'Guru BK' | 'Guru Inklusi' | 'Kepala Sekolah' | 'Tenaga Administrasi' | 'Penjaga Sekolah' | 'Lainnya';
+export type StatusKepegawaian = 'PNS' | 'PPPK' | 'GTT/GTY' | 'Honor Daerah' | 'PTT' | 'Lainnya';
+
+export interface Teacher {
+  id: string;
+  nama: string;
+  nuptk: string;
+  jk: 'L' | 'P' | 'Laki-laki' | 'Perempuan' | string;
+  tempatLahir: string;
+  tanggalLahir: string;
+  nip: string;
+  statusKepegawaian: StatusKepegawaian | string;
+  jenisPtk: PtkType | string;
+  agama: string;
+  alamatJalan: string;
+  rt: string;
+  rw: string;
+  dusun: string;
+  desa: string;
+  kecamatan: string;
+  kodePos: string;
+  telepon: string;
+  hp: string;
+  email: string;
+  tugasTambahan: string;
+  skCpns: string;
+  tanggalCpns: string;
+  skPengangkatan: string;
+  tmtPengangkatan: string;
+  lembagaPengangkatan: string;
+  pangkatGolongan: string;
+  sumberGaji: string;
+  namaIbuKandung: string;
+  statusPerkawinan: string;
+  namaSuamiIstri: string;
+  nipSuamiIstri: string;
+  pekerjaanSuamiIstri: string;
+  tmtPns: string;
+  lisensiKepalaSekolah: string;
+  diklatKepengawasan: string;
+  keahlianBraille: string;
+  keahlianBahasaIsyarat: string;
+  npwp: string;
+  namaWajibPajak: string;
+  kewarganegaraan: string;
+  bank: string;
+  noRekening: string;
+  rekeningAtasNama: string;
+  nik: string;
+  noKk: string;
+  karpeg: string;
+  karisKarsu: string;
+  lintang: string;
+  bujur: string;
+  nuks: string;
+  fotoUrl?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+

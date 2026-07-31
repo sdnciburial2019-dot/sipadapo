@@ -16,8 +16,7 @@ import {
 } from 'lucide-react';
 import { Student } from '../types';
 import { exportToExcel, parseTsvOrCsv, parseExcelFile, downloadExcelTemplate, saveStudents } from '../utils/storage';
-import { INITIAL_STUDENTS } from '../data/initialStudents';
-import { clearAllStudentsFromFirestore, seedInitialStudents, saveAllStudentsToFirestore } from '../lib/firebase';
+import { clearAllStudentsFromFirestore, saveAllStudentsToFirestore } from '../lib/firebase';
 
 interface ImportExportModalProps {
   students: Student[];
@@ -141,22 +140,6 @@ export const ImportExportModal: React.FC<ImportExportModalProps> = ({
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [confirmInputText, setConfirmInputText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
-
-  const handleResetToDefault = async () => {
-    if (confirm('Apakah Anda yakin ingin mengembalikan data ke sampel awal Dapodik? Data baru yang Anda ubah akan terhapus.')) {
-      try {
-        const seeded = await seedInitialStudents();
-        saveStudents(seeded);
-        onStudentsUpdated(seeded);
-        setMsg({ type: 'success', text: 'Database berhasil di-reset ke data sampel Dapodik awal.' });
-      } catch (err) {
-        console.error('Error resetting to sample:', err);
-        saveStudents(INITIAL_STUDENTS);
-        onStudentsUpdated(INITIAL_STUDENTS);
-        setMsg({ type: 'success', text: 'Database berhasil di-reset ke data sampel lokal.' });
-      }
-    }
-  };
 
   const handleClearDatabase = async () => {
     if (confirmInputText.trim().toUpperCase() !== 'HAPUS') {
@@ -448,20 +431,6 @@ export const ImportExportModal: React.FC<ImportExportModalProps> = ({
                   className="px-4 py-2 bg-purple-900 hover:bg-purple-800 text-white font-bold rounded-lg cursor-pointer shrink-0"
                 >
                   Unduh JSON
-                </button>
-              </div>
-
-              <div className="bg-slate-100 p-5 rounded-xl border border-slate-300 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                <div>
-                  <h4 className="font-bold text-slate-900 text-sm">Reset Database ke Sample Awal</h4>
-                  <p className="text-slate-600 text-xs mt-0.5">Kembalikan data ke kondisi awal sampel Dapodik (misal: untuk demonstrasi).</p>
-                </div>
-                <button
-                  onClick={handleResetToDefault}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-lg cursor-pointer shrink-0"
-                >
-                  <RefreshCw className="w-4 h-4" />
-                  Reset ke Sample
                 </button>
               </div>
 

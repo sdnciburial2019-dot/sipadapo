@@ -1,12 +1,13 @@
 import * as XLSX from 'xlsx';
-import { Student, SchoolInfo } from '../types';
-import { INITIAL_STUDENTS } from '../data/initialStudents';
+import { Student, Teacher, SchoolInfo } from '../types';
 import { DEFAULT_SCHOOL_INFO, ROMBEL_LIST } from '../data/dapodikOptions';
-import { saveAllStudentsToFirestore, saveSchoolInfoToFirestore, clearAllStudentsFromFirestore } from '../lib/firebase';
+import { saveAllStudentsToFirestore, saveAllTeachersToFirestore, saveSchoolInfoToFirestore, clearAllStudentsFromFirestore, clearAllTeachersFromFirestore } from '../lib/firebase';
 
 const STORAGE_KEY_STUDENTS = 'sipa_dapodik_students_v1';
+const STORAGE_KEY_TEACHERS = 'sipa_dapodik_teachers_v1';
 const STORAGE_KEY_SCHOOL = 'sipa_dapodik_school_v1';
 const STORAGE_KEY_ROMBEL = 'sipa_dapodik_rombel_v1';
+
 
 export function formatNisn(nisn: string | number | undefined | null): string {
   if (nisn === undefined || nisn === null) return '';
@@ -42,15 +43,10 @@ export function getStoredStudents(): Student[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY_STUDENTS);
     if (raw === null) {
-      if (localStorage.getItem('sipa_dapodik_has_initialized') === 'true' || localStorage.getItem('sipa_dapodik_cleared') === 'true') {
-        return [];
-      }
-      const formatted = INITIAL_STUDENTS.map(s => ({ ...s, nisn: formatNisn(s.nisn) }));
-      saveStudents(formatted);
-      return formatted;
+      return [];
     }
     const parsed = JSON.parse(raw);
-    const list = Array.isArray(parsed) ? parsed : INITIAL_STUDENTS;
+    const list = Array.isArray(parsed) ? parsed : [];
     return list.map((s: Student) => ({ ...s, nisn: formatNisn(s.nisn) }));
   } catch (err) {
     console.error('Error reading students from storage:', err);
@@ -78,6 +74,36 @@ export function saveStudents(students: Student[]): void {
     console.error('Error saving students to storage:', err);
   }
 }
+
+export function getStoredTeachers(): Teacher[] {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_TEACHERS);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (err) {
+    console.error('Error reading teachers from storage:', err);
+    return [];
+  }
+}
+
+export function saveTeachers(teachers: Teacher[]): void {
+  try {
+    localStorage.setItem(STORAGE_KEY_TEACHERS, JSON.stringify(teachers));
+    if (teachers.length === 0) {
+      clearAllTeachersFromFirestore().catch(err => {
+        console.warn('Firestore async teacher clear warning:', err);
+      });
+    } else {
+      saveAllTeachersToFirestore(teachers).catch(err => {
+        console.warn('Firestore async teacher sync warning:', err);
+      });
+    }
+  } catch (err) {
+    console.error('Error saving teachers to storage:', err);
+  }
+}
+
 
 export function getStoredSchoolInfo(): SchoolInfo {
   try {
@@ -484,4 +510,295 @@ export function parseTsvOrCsv(text: string): Partial<Student>[] {
     };
   });
 }
+
+// ==========================================
+// EXCEL & IMPORT/EXPORT FOR TEACHERS / PTK
+// ==========================================
+
+export function exportTeachersToExcel(teachers: Teacher[], fileName = 'data_guru_ptk_dapodik.xlsx'): void {
+  const data = teachers.map((t, idx) => ({
+    'No': idx + 1,
+    'Nama': t.nama || '',
+    'NUPTK': t.nuptk || '',
+    'JK': t.jk || '',
+    'Tempat Lahir': t.tempatLahir || '',
+    'Tanggal Lahir': t.tanggalLahir || '',
+    'NIP': t.nip || '',
+    'Status Kepegawaian': t.statusKepegawaian || '',
+    'Jenis PTK': t.jenisPtk || '',
+    'Agama': t.agama || 'Islam',
+    'Alamat Jalan': t.alamatJalan || '',
+    'RT': t.rt || '',
+    'RW': t.rw || '',
+    'Nama Dusun': t.dusun || '',
+    'Desa/Kelurahan': t.desa || '',
+    'Kecamatan': t.kecamatan || '',
+    'Kode Pos': t.kodePos || '',
+    'Telepon': t.telepon || '',
+    'HP': t.hp || '',
+    'Email': t.email || '',
+    'Tugas Tambahan': t.tugasTambahan || '',
+    'SK CPNS': t.skCpns || '',
+    'Tanggal CPNS': t.tanggalCpns || '',
+    'SK Pengangkatan': t.skPengangkatan || '',
+    'TMT Pengangkatan': t.tmtPengangkatan || '',
+    'Lembaga Pengangkatan': t.lembagaPengangkatan || '',
+    'Pangkat Golongan': t.pangkatGolongan || '',
+    'Sumber Gaji': t.sumberGaji || '',
+    'Nama Ibu Kandung': t.namaIbuKandung || '',
+    'Status Perkawinan': t.statusPerkawinan || '',
+    'Nama Suami/Istri': t.namaSuamiIstri || '',
+    'NIP Suami/Istri': t.nipSuamiIstri || '',
+    'Pekerjaan Suami/Istri': t.pekerjaanSuamiIstri || '',
+    'TMT PNS': t.tmtPns || '',
+    'Sudah Lisensi Kepala Sekolah': t.lisensiKepalaSekolah || 'Tidak',
+    'Pernah Diklat Kepengawasan': t.diklatKepengawasan || 'Tidak',
+    'Keahlian Braille': t.keahlianBraille || 'Tidak',
+    'Keahlian Bahasa Isyarat': t.keahlianBahasaIsyarat || 'Tidak',
+    'NPWP': t.npwp || '',
+    'Nama Wajib Pajak': t.namaWajibPajak || '',
+    'Kewarganegaraan': t.kewarganegaraan || 'ID',
+    'Bank': t.bank || '',
+    'Nomor Rekening Bank': t.noRekening || '',
+    'Rekening Atas Nama': t.rekeningAtasNama || '',
+    'NIK': t.nik || '',
+    'No KK': t.noKk || '',
+    'Karpeg': t.karpeg || '',
+    'Karis/Karsu': t.karisKarsu || '',
+    'Lintang': t.lintang || '',
+    'Bujur': t.bujur || '',
+    'NUKS': t.nuks || ''
+  }));
+
+  const worksheet = XLSX.utils.json_to_sheet(data);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Data PTK');
+  XLSX.writeFile(workbook, fileName);
+}
+
+export function downloadTeacherExcelTemplate(): void {
+  const sampleData = [
+    {
+      'No': 1,
+      'Nama': 'Della Juliana Rismalinda',
+      'NUPTK': '6044764665210123',
+      'JK': 'P',
+      'Tempat Lahir': 'Bandung',
+      'Tanggal Lahir': '1986-07-12',
+      'NIP': '198607122022212032',
+      'Status Kepegawaian': 'PPPK',
+      'Jenis PTK': 'Guru Kelas',
+      'Agama': 'Islam',
+      'Alamat Jalan': 'Jl. Sayuran 35B Kp. Lapang',
+      'RT': '1',
+      'RW': '11',
+      'Nama Dusun': 'Cibogo',
+      'Desa/Kelurahan': 'Cibogo',
+      'Kecamatan': 'Kec. Lembang',
+      'Kode Pos': '40391',
+      'Telepon': '',
+      'HP': '081320705665',
+      'Email': 'dellajuliana88@gmail.com',
+      'Tugas Tambahan': 'Koordinator P5',
+      'SK CPNS': '',
+      'Tanggal CPNS': '',
+      'SK Pengangkatan': '810/Kep.381-BKPSDM',
+      'TMT Pengangkatan': '2022-03-01',
+      'Lembaga Pengangkatan': 'Pemerintah Kab/Kota',
+      'Pangkat Golongan': 'IX',
+      'Sumber Gaji': 'APBN',
+      'Nama Ibu Kandung': 'Cucu Supriati',
+      'Status Perkawinan': 'Kawin',
+      'Nama Suami/Istri': 'Bambang Waris Triono',
+      'NIP Suami/Istri': '',
+      'Pekerjaan Suami/Istri': 'Wiraswasta',
+      'TMT PNS': '2022-03-01',
+      'Sudah Lisensi Kepala Sekolah': 'Ya',
+      'Pernah Diklat Kepengawasan': 'Tidak',
+      'Keahlian Braille': 'Tidak',
+      'Keahlian Bahasa Isyarat': 'Tidak',
+      'NPWP': '845116961421000',
+      'Nama Wajib Pajak': 'DELLA JULIANA RISMALINDA',
+      'Kewarganegaraan': 'ID',
+      'Bank': 'Bank Jabar Banten',
+      'Nomor Rekening Bank': '0012345678901',
+      'Rekening Atas Nama': 'DELLA JULIANA RISMALINDA',
+      'NIK': '3217015207860001',
+      'No KK': '3506090304140006',
+      'Karpeg': '',
+      'Karis/Karsu': '',
+      'Lintang': '-6.8101',
+      'Bujur': '107.6359',
+      'NUKS': ''
+    }
+  ];
+
+  const worksheet = XLSX.utils.json_to_sheet(sampleData);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Template Data PTK');
+  XLSX.writeFile(workbook, 'Template_Data_Guru_PTK_Dapodik.xlsx');
+}
+
+export function parseTeachersFromExcel(file: File): Promise<Teacher[]> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const buffer = e.target?.result;
+        const workbook = XLSX.read(buffer, { type: 'array' });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        
+        // Convert sheet to array of arrays
+        const rawData = XLSX.utils.sheet_to_json<any[]>(worksheet, { header: 1 });
+        if (!rawData || rawData.length < 2) {
+          resolve([]);
+          return;
+        }
+
+        // Find header row (the one containing 'Nama' or 'NUPTK' or 'NIP')
+        let headerRowIndex = 0;
+        for (let i = 0; i < Math.min(10, rawData.length); i++) {
+          const rowStr = JSON.stringify(rawData[i]).toLowerCase();
+          if (rowStr.includes('nama') || rowStr.includes('nuptk') || rowStr.includes('nip')) {
+            headerRowIndex = i;
+            break;
+          }
+        }
+
+        const headers = (rawData[headerRowIndex] || []).map((h: any) => String(h || '').trim().toLowerCase());
+
+        const getColIdx = (possibleNames: string[]) => {
+          return headers.findIndex(h => possibleNames.some(p => h.includes(p.toLowerCase())));
+        };
+
+        const idxNama = getColIdx(['nama']);
+        const idxNuptk = getColIdx(['nuptk']);
+        const idxJk = getColIdx(['jk', 'jenis kelamin']);
+        const idxTempatLahir = getColIdx(['tempat lahir']);
+        const idxTanggalLahir = getColIdx(['tanggal lahir', 'tgl lahir']);
+        const idxNip = getColIdx(['nip']);
+        const idxStatusKepeg = getColIdx(['status kepegawaian', 'status kepeg']);
+        const idxJenisPtk = getColIdx(['jenis ptk', 'jenis_ptk']);
+        const idxAgama = getColIdx(['agama']);
+        const idxAlamat = getColIdx(['alamat jalan', 'alamat']);
+        const idxRt = getColIdx(['rt']);
+        const idxRw = getColIdx(['rw']);
+        const idxDusun = getColIdx(['nama dusun', 'dusun']);
+        const idxDesa = getColIdx(['desa/kelurahan', 'desa', 'kelurahan']);
+        const idxKecamatan = getColIdx(['kecamatan']);
+        const idxKodePos = getColIdx(['kode pos']);
+        const idxTelepon = getColIdx(['telepon']);
+        const idxHp = getColIdx(['hp', 'handphone', 'no hp']);
+        const idxEmail = getColIdx(['email']);
+        const idxTugasTambahan = getColIdx(['tugas tambahan']);
+        const idxSkCpns = getColIdx(['sk cpns']);
+        const idxTglCpns = getColIdx(['tanggal cpns', 'tgl cpns']);
+        const idxSkPengangkatan = getColIdx(['sk pengangkatan']);
+        const idxTmtPengangkatan = getColIdx(['tmt pengangkatan']);
+        const idxLembagaPengangkatan = getColIdx(['lembaga pengangkatan']);
+        const idxPangkat = getColIdx(['pangkat golongan', 'golongan', 'pangkat']);
+        const idxSumberGaji = getColIdx(['sumber gaji']);
+        const idxNamaIbu = getColIdx(['nama ibu kandung', 'nama ibu']);
+        const idxStatusKawin = getColIdx(['status perkawinan', 'status nikah']);
+        const idxNamaPasangan = getColIdx(['nama suami/istri', 'nama suami', 'nama istri']);
+        const idxNipPasangan = getColIdx(['nip suami/istri']);
+        const idxPekPasangan = getColIdx(['pekerjaan suami/istri']);
+        const idxTmtPns = getColIdx(['tmt pns']);
+        const idxLisensiKs = getColIdx(['sudah lisensi kepala sekolah', 'lisensi ks']);
+        const idxDiklatPengawas = getColIdx(['pernah diklat kepengawasan']);
+        const idxBraille = getColIdx(['keahlian braille']);
+        const idxIsyarat = getColIdx(['keahlian bahasa isyarat']);
+        const idxNpwp = getColIdx(['npwp']);
+        const idxNamaWp = getColIdx(['nama wajib pajak']);
+        const idxKewarganegaraan = getColIdx(['kewarganegaraan']);
+        const idxBank = getColIdx(['bank']);
+        const idxNoRek = getColIdx(['nomor rekening bank', 'nomor rekening', 'no rekening']);
+        const idxAtasNama = getColIdx(['rekening atas nama', 'atas nama']);
+        const idxNik = getColIdx(['nik']);
+        const idxNoKk = getColIdx(['no kk', 'nomor kk']);
+        const idxKarpeg = getColIdx(['karpeg']);
+        const idxKaris = getColIdx(['karis/karsu', 'karis', 'karsu']);
+        const idxLintang = getColIdx(['lintang']);
+        const idxBujur = getColIdx(['bujur']);
+        const idxNuks = getColIdx(['nuks']);
+
+        const dataRows = rawData.slice(headerRowIndex + 1);
+
+        const teachers: Teacher[] = dataRows
+          .filter((row: any[]) => row && row.length > 0 && (row[idxNama] || row[idxNuptk] || row[idxNip] || row[0]))
+          .map((row: any[], i: number) => {
+            const val = (idx: number) => (idx !== -1 && row[idx] !== undefined && row[idx] !== null) ? String(row[idx]).trim() : '';
+
+            const rawJk = val(idxJk);
+            let cleanJk = 'Laki-laki';
+            if (rawJk.toLowerCase() === 'p' || rawJk.toLowerCase().includes('perempuan')) {
+              cleanJk = 'Perempuan';
+            }
+
+            return {
+              id: `ptk-${Date.now()}-${i}-${Math.random().toString(36).substring(2, 7)}`,
+              nama: val(idxNama) || `Guru/PTK ${i + 1}`,
+              nuptk: val(idxNuptk),
+              jk: cleanJk,
+              tempatLahir: val(idxTempatLahir),
+              tanggalLahir: val(idxTanggalLahir),
+              nip: val(idxNip),
+              statusKepegawaian: val(idxStatusKepeg) || 'PNS',
+              jenisPtk: val(idxJenisPtk) || 'Guru Kelas',
+              agama: val(idxAgama) || 'Islam',
+              alamatJalan: val(idxAlamat),
+              rt: val(idxRt),
+              rw: val(idxRw),
+              dusun: val(idxDusun),
+              desa: val(idxDesa),
+              kecamatan: val(idxKecamatan) || 'Kec. Lembang',
+              kodePos: val(idxKodePos) || '40391',
+              telepon: val(idxTelepon),
+              hp: val(idxHp),
+              email: val(idxEmail),
+              tugasTambahan: val(idxTugasTambahan),
+              skCpns: val(idxSkCpns),
+              tanggalCpns: val(idxTglCpns),
+              skPengangkatan: val(idxSkPengangkatan),
+              tmtPengangkatan: val(idxTmtPengangkatan),
+              lembagaPengangkatan: val(idxLembagaPengangkatan),
+              pangkatGolongan: val(idxPangkat),
+              sumberGaji: val(idxSumberGaji),
+              namaIbuKandung: val(idxNamaIbu),
+              statusPerkawinan: val(idxStatusKawin),
+              namaSuamiIstri: val(idxNamaPasangan),
+              nipSuamiIstri: val(idxNipPasangan),
+              pekerjaanSuamiIstri: val(idxPekPasangan),
+              tmtPns: val(idxTmtPns),
+              lisensiKepalaSekolah: val(idxLisensiKs) || 'Tidak',
+              diklatKepengawasan: val(idxDiklatPengawas) || 'Tidak',
+              keahlianBraille: val(idxBraille) || 'Tidak',
+              keahlianBahasaIsyarat: val(idxIsyarat) || 'Tidak',
+              npwp: val(idxNpwp),
+              namaWajibPajak: val(idxNamaWp),
+              kewarganegaraan: val(idxKewarganegaraan) || 'ID',
+              bank: val(idxBank),
+              noRekening: val(idxNoRek),
+              rekeningAtasNama: val(idxAtasNama),
+              nik: val(idxNik),
+              noKk: val(idxNoKk),
+              karpeg: val(idxKarpeg),
+              karisKarsu: val(idxKaris),
+              lintang: val(idxLintang),
+              bujur: val(idxBujur),
+              nuks: val(idxNuks)
+            };
+          });
+
+        resolve(teachers);
+      } catch (err) {
+        reject(err);
+      }
+    };
+    reader.onerror = (err) => reject(err);
+    reader.readAsArrayBuffer(file);
+  });
+}
+
 

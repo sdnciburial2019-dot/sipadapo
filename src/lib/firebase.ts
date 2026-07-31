@@ -12,8 +12,7 @@ import {
 } from 'firebase/firestore';
 import { getAuth, signInAnonymously } from 'firebase/auth';
 import firebaseConfigData from '../../firebase-applet-config.json';
-import { Student, SchoolInfo } from '../types';
-import { INITIAL_STUDENTS } from '../data/initialStudents';
+import { Student, Teacher, SchoolInfo } from '../types';
 import { DEFAULT_SCHOOL_INFO } from '../data/dapodikOptions';
 
 const firebaseConfig = {
@@ -39,8 +38,10 @@ signInAnonymously(auth).catch((err) => {
 });
 
 const STUDENTS_COLLECTION = 'students';
+const TEACHERS_COLLECTION = 'teachers';
 const SCHOOL_COLLECTION = 'school_info';
 const SCHOOL_DOC_ID = 'main';
+
 
 // Helper to format NISN
 function formatNisn(nisn: string | number | undefined | null): string {
@@ -65,29 +66,8 @@ export function subscribeStudents(
     colRef,
     async (snapshot) => {
       if (snapshot.empty) {
-        const isLocallyInitialized = localStorage.getItem('sipa_dapodik_has_initialized') === 'true';
-        const isLocallyCleared = localStorage.getItem('sipa_dapodik_cleared') === 'true';
-
-        if (isLocallyCleared || isLocallyInitialized) {
-          onUpdate([]);
-          return;
-        }
-
-        try {
-          const schoolDoc = await getDoc(doc(db, SCHOOL_COLLECTION, SCHOOL_DOC_ID));
-          if (schoolDoc.exists() && (schoolDoc.data()?.isCleared === true || schoolDoc.data()?.hasInitialized === true)) {
-            localStorage.setItem('sipa_dapodik_has_initialized', 'true');
-            onUpdate([]);
-            return;
-          }
-        } catch (e) {
-          console.warn('Error checking school_info clear state:', e);
-        }
-
-        // If empty in Firestore and never initialized, seed initial students
-        console.log('First time setup: Seeding initial students into Firestore...');
         localStorage.setItem('sipa_dapodik_has_initialized', 'true');
-        await seedInitialStudents();
+        onUpdate([]);
         return;
       }
 
@@ -119,27 +99,10 @@ export function subscribeStudents(
   );
 }
 
-// Seed initial students into Firestore if empty
+// Seed initial students function (now returns empty array)
 export async function seedInitialStudents(): Promise<Student[]> {
-  try {
-    localStorage.setItem('sipa_dapodik_has_initialized', 'true');
-    localStorage.removeItem('sipa_dapodik_cleared');
-
-    const schoolRef = doc(db, SCHOOL_COLLECTION, SCHOOL_DOC_ID);
-    await setDoc(schoolRef, { isCleared: false, hasInitialized: true }, { merge: true });
-
-    const formatted = INITIAL_STUDENTS.map((s) => ({ ...s, nisn: formatNisn(s.nisn) }));
-    const batch = writeBatch(db);
-    for (const student of formatted) {
-      const docRef = doc(db, STUDENTS_COLLECTION, student.id);
-      batch.set(docRef, student);
-    }
-    await batch.commit();
-    return formatted;
-  } catch (err) {
-    console.error('Error seeding initial students to Firestore:', err);
-    return INITIAL_STUDENTS.map((s) => ({ ...s, nisn: formatNisn(s.nisn) }));
-  }
+  localStorage.setItem('sipa_dapodik_has_initialized', 'true');
+  return [];
 }
 
 // Clear all students from Firestore & set isCleared flag
@@ -247,3 +210,79 @@ export async function saveSchoolInfoToFirestore(info: SchoolInfo): Promise<void>
   const docRef = doc(db, SCHOOL_COLLECTION, SCHOOL_DOC_ID);
   await setDoc(docRef, info, { merge: true });
 }
+
+// ==========================================
+// TEACHER / PTK FIRESTORE SYNC FUNCTIONS
+// ==========================================
+
+export function subscribeTeachers(
+  onUpdate: (teachers: Teacher[]) => void,
+  onError?: (err: Error) => void
+) {
+  const colRef = collection(db, TEACHERS_COLLECTION);
+  return onSnapshot(
+    colRef,
+    (snapshot) => {
+      const teachersList: Teacher[] = [];
+      snapshot.forEach((docSnap) => {
+        teachersList.push(docSnap.data() as Teacher);
+      });
+      onUpdate(teachersList);
+    },
+    (err) => {
+      console.error('Firestore teachers snapshot error:', err);
+      if (onError) onError(err);
+    }
+  );
+}
+
+export async function saveTeacherToFirestore(teacher: Teacher): Promise<void> {
+  const formatted = { ...teacher, updatedAt: new Date().toISOString() };
+  const docRef = doc(db, TEACHERS_COLLECTION, formatted.id);
+  await setDoc(docRef, formatted, { merge: true });
+}
+
+export async function saveAllTeachersToFirestore(teachers: Teacher[]): Promise<void> {
+  if (teachers.length === 0) {
+    await clearAllTeachersFromFirestore();
+    return;
+  }
+  const batch = writeBatch(db);
+  teachers.forEach((teacher) => {
+    const formatted = { ...teacher, updatedAt: new Date().toISOString() };
+    const docRef = doc(db, TEACHERS_COLLECTION, formatted.id);
+    batch.set(docRef, formatted, { merge: true });
+  });
+  await batch.commit();
+}
+
+export async function deleteTeacherFromFirestore(id: string): Promise<void> {
+  const docRef = doc(db, TEACHERS_COLLECTION, id);
+  await deleteDoc(docRef);
+}
+
+export async function deleteBulkTeachersFromFirestore(ids: string[]): Promise<void> {
+  const batch = writeBatch(db);
+  ids.forEach((id) => {
+    const docRef = doc(db, TEACHERS_COLLECTION, id);
+    batch.delete(docRef);
+  });
+  await batch.commit();
+}
+
+export async function clearAllTeachersFromFirestore(): Promise<void> {
+  try {
+    const colRef = collection(db, TEACHERS_COLLECTION);
+    const snapshot = await getDocs(colRef);
+    if (!snapshot.empty) {
+      const batch = writeBatch(db);
+      snapshot.forEach((docSnap) => {
+        batch.delete(docSnap.ref);
+      });
+      await batch.commit();
+    }
+  } catch (err) {
+    console.error('Error clearing teachers from Firestore:', err);
+  }
+}
+

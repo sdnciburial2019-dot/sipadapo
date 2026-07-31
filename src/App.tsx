@@ -12,10 +12,12 @@ import {
   UserMinus,
   Award
 } from 'lucide-react';
-import { Student, SchoolInfo, FilterOptions } from './types';
+import { Student, Teacher, SchoolInfo, FilterOptions } from './types';
 import { 
   getStoredStudents, 
   saveStudents, 
+  getStoredTeachers,
+  saveTeachers,
   getStoredSchoolInfo, 
   exportToExcel, 
   calculateStudentCompleteness,
@@ -25,6 +27,7 @@ import {
 } from './utils/storage';
 import { 
   subscribeStudents, 
+  subscribeTeachers,
   subscribeSchoolInfo, 
   saveStudentToFirestore, 
   saveAllStudentsToFirestore, 
@@ -36,6 +39,7 @@ import { Header } from './components/Header';
 import { DashboardStats } from './components/DashboardStats';
 import { StudentTable } from './components/StudentTable';
 import { StudentGrid } from './components/StudentGrid';
+import { TeacherTable } from './components/TeacherTable';
 import { StudentDetailModal } from './components/StudentDetailModal';
 import { StudentFormModal } from './components/StudentFormModal';
 import { StudentCardPrintModal } from './components/StudentCardPrintModal';
@@ -47,11 +51,13 @@ import { PhysicalPeriodicalDataModal } from './components/PhysicalPeriodicalData
 
 export default function App() {
   const [students, setStudents] = useState<Student[]>(getStoredStudents());
+  const [teachers, setTeachers] = useState<Teacher[]>(getStoredTeachers());
   const [schoolInfo, setSchoolInfo] = useState<SchoolInfo>(getStoredSchoolInfo());
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
 
-  // Main Classification Tab State: 'aktif' | 'mutasi' | 'alumni'
-  const [mainTab, setMainTab] = useState<'aktif' | 'mutasi' | 'alumni'>('aktif');
+  // Main Classification Tab State: 'aktif' | 'mutasi' | 'alumni' | 'guru'
+  const [mainTab, setMainTab] = useState<'aktif' | 'mutasi' | 'alumni' | 'guru'>('aktif');
+
 
   // Filter State
   const [filters, setFilters] = useState<FilterOptions>({
@@ -115,6 +121,18 @@ export default function App() {
       (err) => console.error('Students sync error:', err)
     );
 
+    const unsubscribeTeachers = subscribeTeachers(
+      (firestoreTeachers) => {
+        setTeachers(firestoreTeachers);
+        try {
+          localStorage.setItem('sipa_dapodik_teachers_v1', JSON.stringify(firestoreTeachers));
+        } catch (e) {
+          console.warn('Localstorage teacher cache error:', e);
+        }
+      },
+      (err) => console.error('Teachers sync error:', err)
+    );
+
     const unsubscribeSchool = subscribeSchoolInfo(
       (info) => {
         setSchoolInfo(info);
@@ -129,6 +147,7 @@ export default function App() {
 
     return () => {
       unsubscribeStudents();
+      unsubscribeTeachers();
       unsubscribeSchool();
     };
   }, []);
@@ -460,12 +479,35 @@ export default function App() {
                   {alumniStudents.length}
                 </span>
               </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setMainTab('guru');
+                  setFilters(prev => ({ ...prev, rombel: '' }));
+                  setSelectedIds([]);
+                }}
+                className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
+                  mainTab === 'guru'
+                    ? 'bg-indigo-600 text-white shadow-md ring-2 ring-indigo-600/20'
+                    : 'bg-indigo-50 text-indigo-800 hover:bg-indigo-100 border border-indigo-200/60'
+                }`}
+              >
+                <GraduationCap className="w-4 h-4 text-indigo-500" />
+                <span>Data Guru & PTK</span>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${
+                  mainTab === 'guru' ? 'bg-indigo-800 text-indigo-100' : 'bg-indigo-200 text-indigo-900'
+                }`}>
+                  {teachers.length}
+                </span>
+              </button>
             </div>
 
             <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
               {mainTab === 'aktif' && <span>Menampilkan seluruh murid aktif di rombel kelas.</span>}
               {mainTab === 'mutasi' && <span className="text-amber-700 font-bold">📤 Tab Khusus Murid Mutasi Keluar</span>}
               {mainTab === 'alumni' && <span className="text-sky-700 font-bold">🎓 Tab Khusus Alumni & Siswa Lulus</span>}
+              {mainTab === 'guru' && <span className="text-indigo-700 font-bold">👩‍🏫 Tab Khusus Pendidik & Tenaga Kependidikan (PTK)</span>}
             </div>
           </div>
 
@@ -484,92 +526,115 @@ export default function App() {
               </span>
             </div>
           )}
-        </div>
 
-        {/* View Toggle Bar */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <h2 className="text-base font-bold text-slate-900 tracking-tight flex items-center gap-2">
-              Daftar Murid (Dapodik)
-              <span className="text-xs font-normal text-slate-500 font-mono">
-                ({filteredStudents.length} murid)
+          {mainTab === 'guru' && (
+            <div className="p-3 bg-indigo-50 border border-indigo-200 rounded-xl text-xs text-indigo-900 flex items-center justify-between">
+              <span className="font-medium">
+                Daftar ini memuat seluruh Pendidik (Guru Kelas, Guru Mapel, Guru BK) dan Tenaga Kependidikan (Kepala Sekolah, Administrasi, Penjaga) Dapodik.
               </span>
-            </h2>
-          </div>
-
-          <div className="flex items-center space-x-2">
-            {/* View Mode Toggle */}
-            <div className="bg-slate-200 p-0.5 rounded-lg flex items-center gap-0.5 text-xs">
-              <button
-                onClick={() => setViewMode('table')}
-                className={`px-2.5 py-1 rounded-md font-semibold transition-all cursor-pointer flex items-center gap-1 ${
-                  viewMode === 'table' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                <List className="w-3.5 h-3.5" />
-                <span>Tabel</span>
-              </button>
-
-              <button
-                onClick={() => setViewMode('grid')}
-                className={`px-2.5 py-1 rounded-md font-semibold transition-all cursor-pointer flex items-center gap-1 ${
-                  viewMode === 'grid' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                <LayoutGrid className="w-3.5 h-3.5" />
-                <span>Kartu</span>
-              </button>
             </div>
-          </div>
+          )}
         </div>
 
-        {/* Directory View (Table or Grid) */}
-        {viewMode === 'table' ? (
-          <StudentTable
-            students={filteredStudents}
-            filters={filters}
-            onFilterChange={setFilters}
-            onSelectStudent={s => setDetailStudent(s)}
-            onEditStudent={s => {
-              setFormStudent(s);
-              setIsFormOpen(true);
+        {/* View Content (Data Guru OR Data Murid Table/Grid) */}
+        {mainTab === 'guru' ? (
+          <TeacherTable
+            teachers={teachers}
+            schoolInfo={schoolInfo}
+            onTeachersUpdated={updatedTeachers => {
+              setTeachers(updatedTeachers);
+              showToast('Data Guru & PTK berhasil diperbarui!');
             }}
-            onDeleteStudent={handleDeleteStudent}
-            onPrintCard={s => {
-              setCardPrintStudents([s]);
-              setIsCardPrintOpen(true);
-            }}
-            onPrintFpd={s => {
-              setFpdStudent(s);
-              setIsFpdOpen(true);
-            }}
-            onOpenPhysicalDataModal={() => setIsPhysicalDataOpen(true)}
-            selectedIds={selectedIds}
-            onToggleSelectAll={handleToggleSelectAll}
-            onToggleSelectOne={handleToggleSelectOne}
-            onBulkDelete={handleBulkDelete}
-            onBulkPrintCards={handleBulkPrintCards}
-            onBulkExport={handleBulkExport}
-            onBulkChangeRombel={handleBulkChangeRombel}
           />
         ) : (
-          <StudentGrid
-            students={filteredStudents}
-            onSelectStudent={s => setDetailStudent(s)}
-            onEditStudent={s => {
-              setFormStudent(s);
-              setIsFormOpen(true);
-            }}
-            onPrintCard={s => {
-              setCardPrintStudents([s]);
-              setIsCardPrintOpen(true);
-            }}
-            onPrintFpd={s => {
-              setFpdStudent(s);
-              setIsFpdOpen(true);
-            }}
-          />
+          <>
+            {/* View Toggle Bar */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <h2 className="text-base font-bold text-slate-900 tracking-tight flex items-center gap-2">
+                  Daftar Murid (Dapodik)
+                  <span className="text-xs font-normal text-slate-500 font-mono">
+                    ({filteredStudents.length} murid)
+                  </span>
+                </h2>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                {/* View Mode Toggle */}
+                <div className="bg-slate-200 p-0.5 rounded-lg flex items-center gap-0.5 text-xs">
+                  <button
+                    onClick={() => setViewMode('table')}
+                    className={`px-2.5 py-1 rounded-md font-semibold transition-all cursor-pointer flex items-center gap-1 ${
+                      viewMode === 'table' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    <List className="w-3.5 h-3.5" />
+                    <span>Tabel</span>
+                  </button>
+
+                  <button
+                    onClick={() => setViewMode('grid')}
+                    className={`px-2.5 py-1 rounded-md font-semibold transition-all cursor-pointer flex items-center gap-1 ${
+                      viewMode === 'grid' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    <LayoutGrid className="w-3.5 h-3.5" />
+                    <span>Kartu</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Directory View (Table or Grid) */}
+            {viewMode === 'table' ? (
+              <StudentTable
+                students={filteredStudents}
+                filters={filters}
+                onFilterChange={setFilters}
+                onSelectStudent={s => setDetailStudent(s)}
+                onEditStudent={s => {
+                  setFormStudent(s);
+                  setIsFormOpen(true);
+                }}
+                onDeleteStudent={handleDeleteStudent}
+                onPrintCard={s => {
+                  setCardPrintStudents([s]);
+                  setIsCardPrintOpen(true);
+                }}
+                onPrintFpd={s => {
+                  setFpdStudent(s);
+                  setIsFpdOpen(true);
+                }}
+                onOpenPhysicalDataModal={() => setIsPhysicalDataOpen(true)}
+                selectedIds={selectedIds}
+                onToggleSelectAll={handleToggleSelectAll}
+                onToggleSelectOne={handleToggleSelectOne}
+                onBulkDelete={handleBulkDelete}
+                onBulkPrintCards={handleBulkPrintCards}
+                onBulkExport={handleBulkExport}
+                onBulkChangeRombel={handleBulkChangeRombel}
+              />
+            ) : (
+              <StudentGrid
+                students={filteredStudents}
+                onSelectStudent={s => setDetailStudent(s)}
+                onEditStudent={s => {
+                  setFormStudent(s);
+                  setIsFormOpen(true);
+                }}
+                onPrintCard={s => {
+                  setCardPrintStudents([s]);
+                  setIsCardPrintOpen(true);
+                }}
+                onPrintFpd={s => {
+                  setFpdStudent(s);
+                  setIsFpdOpen(true);
+                }}
+              />
+            )}
+          </>
         )}
+
       </main>
 
       {/* Footer */}
