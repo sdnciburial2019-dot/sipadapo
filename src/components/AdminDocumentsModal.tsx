@@ -1812,73 +1812,73 @@ export const AdminDocumentsModal: React.FC<AdminDocumentsModalProps> = ({
               {activeTab === 'undangan_rapat' && (
                 <div className="space-y-4 font-sans text-slate-900 leading-relaxed">
                   {/* Letter Metadata / Header Right & Left */}
-                  <div className="flex justify-between items-start text-xs pt-2 border-t border-slate-900/10">
+                  <div className="flex justify-between items-start text-xs pt-2 border-t border-slate-900/10 gap-4">
                     <div className="space-y-1">
                       <table className="text-xs">
                         <tbody>
                           <tr>
-                            <td className="w-20 py-0.5 font-medium">Nomor</td>
-                            <td className="w-3">:</td>
-                            <td className="font-mono font-semibold">{nomorSurat}</td>
+                            <td className="w-20 py-0.5 font-medium text-slate-700">Nomor</td>
+                            <td className="w-3 font-bold text-slate-700">:</td>
+                            <td className="font-mono font-semibold text-slate-900">{nomorSurat}</td>
                           </tr>
                           <tr>
-                            <td className="py-0.5 font-medium">Lampiran</td>
-                            <td>:</td>
-                            <td>-</td>
+                            <td className="py-0.5 font-medium text-slate-700">Lampiran</td>
+                            <td className="font-bold text-slate-700">:</td>
+                            <td className="text-slate-900">-</td>
                           </tr>
                           <tr>
-                            <td className="py-0.5 font-medium align-top">Perihal</td>
-                            <td className="align-top">:</td>
-                            <td className="font-bold underline">{halSuratUndangan}</td>
+                            <td className="py-0.5 font-medium text-slate-700 align-top">Perihal</td>
+                            <td className="font-bold text-slate-700 align-top">:</td>
+                            <td className="font-bold underline text-slate-900">{halSuratUndangan}</td>
                           </tr>
                         </tbody>
                       </table>
                     </div>
 
-                    <div className="text-right">
-                      <p>{schoolInfo.kecamatan || 'Bandung Barat'}, {tanggalSurat}</p>
+                    <div className="text-right whitespace-nowrap shrink-0 pt-0.5">
+                      <p className="font-medium text-xs text-slate-900">Kab. Bandung Barat, {tanggalSurat}</p>
                     </div>
                   </div>
 
                   {/* Recipient / Kepada Yth */}
-                  <div className="text-xs space-y-1 pt-2">
-                    <p>Kepada Yth.</p>
-                    <p className="font-bold text-sm uppercase">{tujuanSuratUndangan}</p>
-                    <p>{schoolInfo.name}</p>
-                    <p>di Tempat</p>
+                  <div className="text-xs space-y-0.5 pt-2">
+                    <p className="text-slate-700">Kepada Yth.</p>
+                    <p className="font-bold text-xs uppercase text-slate-900">{tujuanSuratUndangan}</p>
+                    <p className="font-semibold text-slate-800">{schoolInfo.name}</p>
+                    <p className="text-slate-700">di Tempat</p>
                   </div>
 
                   {/* Salam Pembuka */}
-                  <div className="text-xs pt-2 space-y-2">
-                    <p className="font-medium">Assalamu'alaikum Wr. Wb. / Salam Sejahtera,</p>
-                    <p className="text-justify leading-relaxed indent-8">
+                  <div className="text-xs pt-1 space-y-2">
+                    <p className="font-semibold text-slate-900">Assalamu'alaikum Wr. Wb. / Salam Sejahtera,</p>
+                    <p className="text-justify leading-relaxed indent-8 text-slate-900">
                       {pengantarUndangan}
                     </p>
                   </div>
 
                   {/* Rincian Rapat Box */}
-                  <div className="my-3 p-3 bg-slate-50/90 border border-slate-300 rounded-lg text-xs space-y-1.5 ml-4 mr-4">
+                  <div className="my-3 p-3.5 bg-slate-50/90 border border-slate-300 rounded-lg text-xs space-y-1.5 mx-2 shadow-2xs">
                     <table className="w-full text-xs">
                       <tbody>
                         <tr>
                           <td className="w-36 py-1 font-semibold text-slate-700">Hari / Tanggal</td>
-                          <td className="w-4">:</td>
+                          <td className="w-4 font-bold text-slate-700">:</td>
                           <td className="font-bold text-slate-900">{hariTanggalUndangan}</td>
                         </tr>
                         <tr>
                           <td className="py-1 font-semibold text-slate-700">Waktu Pelaksanaan</td>
-                          <td>:</td>
+                          <td className="font-bold text-slate-700">:</td>
                           <td className="font-bold text-slate-900">{waktuUndangan}</td>
                         </tr>
                         <tr>
                           <td className="py-1 font-semibold text-slate-700">Tempat Rapat</td>
-                          <td>:</td>
+                          <td className="font-bold text-slate-700">:</td>
                           <td className="font-bold text-slate-900">{tempatUndangan}</td>
                         </tr>
                         <tr>
                           <td className="py-1 font-semibold text-slate-700 align-top">Agenda / Acara</td>
-                          <td className="align-top">:</td>
-                          <td className="align-top font-medium whitespace-pre-line leading-normal text-slate-900">
+                          <td className="font-bold text-slate-700 align-top">:</td>
+                          <td className="align-top font-medium whitespace-pre-line leading-relaxed text-slate-900">
                             {agendaUndangan}
                           </td>
                         </tr>
@@ -1887,28 +1887,29 @@ export const AdminDocumentsModal: React.FC<AdminDocumentsModalProps> = ({
                   </div>
 
                   {/* Penutup & Catatan */}
-                  <div className="text-xs space-y-2">
+                  <div className="text-xs space-y-2.5">
                     <p className="text-justify leading-relaxed indent-8">
                       Mengingat pentingnya agenda acara tersebut, kami sangat mengharapkan kehadiran Bapak/Ibu tepat pada waktunya.
                     </p>
                     {catatanUndangan && (
-                      <p className="text-xs italic text-slate-800 bg-amber-50/80 p-2.5 rounded border-l-2 border-amber-500">
+                      <p className="text-xs italic text-slate-800 bg-amber-50/90 p-2.5 rounded-md border-l-3 border-amber-500">
                         <strong>Catatan:</strong> {catatanUndangan}
                       </p>
                     )}
-                    <p className="pt-1">
+                    <p className="pt-0.5">
                       Demikian surat undangan ini kami sampaikan. Atas perhatian, kehadiran, dan kerja sama Bapak/Ibu, kami ucapkan terima kasih.
                     </p>
-                    <p className="font-medium pt-1">Wassalamu'alaikum Wr. Wb.</p>
+                    <p className="font-semibold text-slate-900 pt-0.5">Wassalamu'alaikum Wr. Wb.</p>
                   </div>
 
                   {/* Tanda Tangan Kepala Sekolah */}
                   <div className="pt-6 flex justify-end text-xs font-sans">
                     <div className="text-center w-64 space-y-1">
-                      <p>Kepala {schoolInfo.name}</p>
+                      <p className="font-medium">Kab. Bandung Barat, {tanggalSurat}</p>
+                      <p className="font-semibold">Kepala {schoolInfo.name}</p>
                       <div className="h-20" />
-                      <p className="font-bold underline propercase">{schoolInfo.kepalaSekolah}</p>
-                      <p className="text-[11px] font-mono">NIP. {schoolInfo.nipKepala}</p>
+                      <p className="font-bold underline uppercase tracking-wide">{schoolInfo.kepalaSekolah}</p>
+                      <p className="text-[11px] font-mono text-slate-800">NIP. {schoolInfo.nipKepala}</p>
                     </div>
                   </div>
                 </div>
