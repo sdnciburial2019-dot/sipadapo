@@ -1905,7 +1905,6 @@ export const AdminDocumentsModal: React.FC<AdminDocumentsModalProps> = ({
                   {/* Tanda Tangan Kepala Sekolah */}
                   <div className="pt-6 flex justify-end text-xs font-sans">
                     <div className="text-center w-64 space-y-1">
-                      <p className="font-medium">Kab. Bandung Barat, {tanggalSurat}</p>
                       <p className="font-semibold">Kepala {schoolInfo.name}</p>
                       <div className="h-20" />
                       <p className="font-bold underline uppercase tracking-wide">{schoolInfo.kepalaSekolah}</p>
