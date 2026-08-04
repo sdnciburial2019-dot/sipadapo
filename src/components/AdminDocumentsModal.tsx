@@ -21,7 +21,8 @@ import {
   Check,
   Plus,
   Trash2,
-  BookOpen
+  BookOpen,
+  Mail
 } from 'lucide-react';
 import { Student, SchoolInfo } from '../types';
 import { ROMBEL_LIST } from '../data/dapodikOptions';
@@ -34,6 +35,7 @@ export type DocType =
   | 'mutasi_masuk' 
   | 'mutasi_keluar' 
   | 'pip' 
+  | 'undangan_rapat'
   | 'rapat_ortu'
   | 'daftar_nilai';
 
@@ -150,12 +152,53 @@ export const AdminDocumentsModal: React.FC<AdminDocumentsModalProps> = ({
   const [akunVirtualPip, setAkunVirtualPip] = useState<string>('NG100120207938060005RS');
   const [tahapPencairanPip, setTahapPencairanPip] = useState<string>('1');
 
-  // 6. Rapat Ortu Specific
+  // 6. Rapat Ortu Specific (Daftar Hadir)
   const [namaRapat, setNamaRapat] = useState<string>(
     'Rapat Sosialisasi Program Sekolah, Evaluasi Belajar, & Komite TA 2026/2027'
   );
   const [hariTanggalRapat, setHariTanggalRapat] = useState<string>('Sabtu, 25 Juli 2026');
   const [waktuTempatRapat, setWaktuTempatRapat] = useState<string>('08:30 WIB - Selesai @ Ruang Kelas SD Negeri Ciburial');
+
+  // 7. Surat Undangan Rapat Specific
+  const [jenisRapatUndangan, setJenisRapatUndangan] = useState<'ortu' | 'guru' | 'komite' | 'kustom'>('ortu');
+  const [halSuratUndangan, setHalSuratUndangan] = useState<string>(
+    'Undangan Rapat Sosialisasi Program Sekolah & Orang Tua / Wali Murid'
+  );
+  const [tujuanSuratUndangan, setTujuanSuratUndangan] = useState<string>(
+    'Bapak/Ibu Orang Tua / Wali Murid'
+  );
+  const [pengantarUndangan, setPengantarUndangan] = useState<string>(
+    'Sehubungan dengan dimulainya Tahun Ajaran Baru 2026/2027 serta sosialisasi program kerja sekolah dan tata tertib siswa, kami mengharapkan kehadiran Bapak/Ibu Orang Tua / Wali Murid pada:'
+  );
+  const [hariTanggalUndangan, setHariTanggalUndangan] = useState<string>('Sabtu, 25 Juli 2026');
+  const [waktuUndangan, setWaktuUndangan] = useState<string>('08:00 WIB s.d. Selesai');
+  const [tempatUndangan, setTempatUndangan] = useState<string>('Ruang Aula / Kelas SD Negeri Ciburial');
+  const [agendaUndangan, setAgendaUndangan] = useState<string>(
+    '1. Sosialisasi Program Kerja Sekolah & Kurikulum Operasional\n2. Pembahasan Tata Tertib Siswa & Komite Sekolah\n3. Tanya Jawab & Musyawarah Orang Tua\n4. Penutup'
+  );
+  const [catatanUndangan, setCatatanUndangan] = useState<string>(
+    'Mengingat pentingnya acara ini, dimohon kehadiran Bapak/Ibu tepat pada waktunya dan tidak diwakilkan.'
+  );
+
+  const handlePresetChange = (type: 'ortu' | 'guru' | 'komite' | 'kustom') => {
+    setJenisRapatUndangan(type);
+    if (type === 'ortu') {
+      setHalSuratUndangan('Undangan Rapat Sosialisasi Program Sekolah & Orang Tua / Wali Murid');
+      setTujuanSuratUndangan('Bapak/Ibu Orang Tua / Wali Murid');
+      setPengantarUndangan('Sehubungan dengan dimulainya Tahun Ajaran Baru 2026/2027 serta sosialisasi program kerja sekolah dan tata tertib siswa, kami mengharapkan kehadiran Bapak/Ibu Orang Tua / Wali Murid pada:');
+      setAgendaUndangan('1. Sosialisasi Program Kerja Sekolah & Kurikulum Operasional\n2. Pembahasan Tata Tertib Siswa & Komite Sekolah\n3. Tanya Jawab & Musyawarah Orang Tua\n4. Penutup');
+    } else if (type === 'guru') {
+      setHalSuratUndangan('Undangan Rapat Dewan Guru & Evaluation Pembelajaran');
+      setTujuanSuratUndangan('Bapak/Ibu Dewan Guru & Tenaga Kependidikan');
+      setPengantarUndangan('Sehubungan dengan pembagian tugas mengajar, penyusunan Perangkat Ajar, serta persiapan Kegiatan Belajar Mengajar (KBM), kami mengharapkan kehadiran Bapak/Ibu Dewan Guru pada:');
+      setAgendaUndangan('1. Pembagian Tugas Mengajar & Jadwal Pelajaran\n2. Penyusunan Modul Ajar / RPP\n3. Pembahasan Kedisiplinan & Administrasi PTK\n4. Lain-lain');
+    } else if (type === 'komite') {
+      setHalSuratUndangan('Undangan Rapat Musyawarah Komite Sekolah');
+      setTujuanSuratUndangan('Bapak/Ibu Pengurus Komite Sekolah & Tokoh Masyarakat');
+      setPengantarUndangan('Dalam rangka meningkatkan mutu pelayanan pendidikan serta penyusunan Rencana Anggaran Pendapatan dan Belanja Sekolah (RAPBS), kami mengharapkan kehadiran Bapak/Ibu Pengurus Komite Sekolah pada:');
+      setAgendaUndangan('1. Pembahasan Program Pengembangan Sekolah\n2. Penyusunan Rencana Anggaran (RAPBS)\n3. Evaluasi Sarana & Prasarana Sekolah\n4. Lain-lain');
+    }
+  };
 
   // 7. Daftar Nilai Specific
   const [mataPelajaran, setMataPelajaran] = useState<string>('Ilmu Pengetahuan Alam dan Sosial (IPAS)');
@@ -358,6 +401,18 @@ export const AdminDocumentsModal: React.FC<AdminDocumentsModalProps> = ({
           >
             <Award className="w-4 h-4" />
             <span>Surat Keterangan PIP</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('undangan_rapat')}
+            className={`px-3 py-2 rounded-lg flex items-center gap-2 shrink-0 transition-all cursor-pointer ${
+              activeTab === 'undangan_rapat'
+                ? 'bg-emerald-500 text-slate-950 font-bold shadow-sm'
+                : 'hover:bg-slate-700 text-slate-300'
+            }`}
+          >
+            <Mail className="w-4 h-4" />
+            <span>Surat Undangan Rapat</span>
           </button>
 
           <button
@@ -594,7 +649,7 @@ export const AdminDocumentsModal: React.FC<AdminDocumentsModalProps> = ({
             )}
 
             {/* Common Letter Metadata */}
-            {['aktif', 'mutasi_masuk', 'mutasi_keluar', 'pip'].includes(activeTab) && (
+            {['aktif', 'mutasi_masuk', 'mutasi_keluar', 'pip', 'undangan_rapat'].includes(activeTab) && (
               <>
                 <div className="space-y-1">
                   <div className="flex items-center justify-between">
@@ -859,6 +914,145 @@ export const AdminDocumentsModal: React.FC<AdminDocumentsModalProps> = ({
                   className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800"
                 />
               </div>
+            )}
+
+            {/* Surat Undangan Rapat Controls */}
+            {activeTab === 'undangan_rapat' && (
+              <>
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700 block text-xs">Pilih Preset Undangan Rapat:</label>
+                  <div className="grid grid-cols-2 gap-1 text-[11px]">
+                    <button
+                      type="button"
+                      onClick={() => handlePresetChange('ortu')}
+                      className={`p-1.5 rounded-lg border font-medium transition-all text-center ${
+                        jenisRapatUndangan === 'ortu'
+                          ? 'bg-emerald-600 text-white border-emerald-600 font-bold'
+                          : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
+                      }`}
+                    >
+                      Orang Tua / Wali
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handlePresetChange('guru')}
+                      className={`p-1.5 rounded-lg border font-medium transition-all text-center ${
+                        jenisRapatUndangan === 'guru'
+                          ? 'bg-emerald-600 text-white border-emerald-600 font-bold'
+                          : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
+                      }`}
+                    >
+                      Dewan Guru
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handlePresetChange('komite')}
+                      className={`p-1.5 rounded-lg border font-medium transition-all text-center ${
+                        jenisRapatUndangan === 'komite'
+                          ? 'bg-emerald-600 text-white border-emerald-600 font-bold'
+                          : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
+                      }`}
+                    >
+                      Komite Sekolah
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setJenisRapatUndangan('kustom')}
+                      className={`p-1.5 rounded-lg border font-medium transition-all text-center ${
+                        jenisRapatUndangan === 'kustom'
+                          ? 'bg-emerald-600 text-white border-emerald-600 font-bold'
+                          : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
+                      }`}
+                    >
+                      Kustom
+                    </button>
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700 block">Perihal / Hal Surat:</label>
+                  <input
+                    type="text"
+                    value={halSuratUndangan}
+                    onChange={e => setHalSuratUndangan(e.target.value)}
+                    className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 text-xs font-semibold"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700 block">Kepada Yth (Tujuan):</label>
+                  <input
+                    type="text"
+                    value={tujuanSuratUndangan}
+                    onChange={e => setTujuanSuratUndangan(e.target.value)}
+                    placeholder="Contoh: Bapak/Ibu Orang Tua / Wali Murid Kelas 1 s.d 6"
+                    className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 text-xs font-medium"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700 block">Kalimat Pembuka / Pengantar:</label>
+                  <textarea
+                    rows={3}
+                    value={pengantarUndangan}
+                    onChange={e => setPengantarUndangan(e.target.value)}
+                    className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 text-xs"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700 block">Hari / Tanggal Rapat:</label>
+                  <input
+                    type="text"
+                    value={hariTanggalUndangan}
+                    onChange={e => setHariTanggalUndangan(e.target.value)}
+                    placeholder="Contoh: Sabtu, 25 Juli 2026"
+                    className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 text-xs"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700 block">Waktu Rapat:</label>
+                  <input
+                    type="text"
+                    value={waktuUndangan}
+                    onChange={e => setWaktuUndangan(e.target.value)}
+                    placeholder="Contoh: 08:00 WIB s.d. Selesai"
+                    className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 text-xs"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700 block">Tempat Rapat:</label>
+                  <input
+                    type="text"
+                    value={tempatUndangan}
+                    onChange={e => setTempatUndangan(e.target.value)}
+                    placeholder="Contoh: Ruang Aula / Kelas SD Negeri Ciburial"
+                    className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 text-xs"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700 block">Agenda / Susunan Acara:</label>
+                  <textarea
+                    rows={4}
+                    value={agendaUndangan}
+                    onChange={e => setAgendaUndangan(e.target.value)}
+                    className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 text-xs font-mono"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700 block">Catatan Tambahan / Himbauan:</label>
+                  <textarea
+                    rows={2}
+                    value={catatanUndangan}
+                    onChange={e => setCatatanUndangan(e.target.value)}
+                    className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 text-xs"
+                  />
+                </div>
+              </>
             )}
 
             {/* Rapat Ortu Controls */}
@@ -1609,6 +1803,112 @@ export const AdminDocumentsModal: React.FC<AdminDocumentsModalProps> = ({
                           <p className="text-[10px]">NIP. ....................................</p>
                         </div>
                       </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* DOKUMEN: SURAT UNDANGAN RAPAT */}
+              {activeTab === 'undangan_rapat' && (
+                <div className="space-y-4 font-sans text-slate-900 leading-relaxed">
+                  {/* Letter Metadata / Header Right & Left */}
+                  <div className="flex justify-between items-start text-xs pt-2 border-t border-slate-900/10">
+                    <div className="space-y-1">
+                      <table className="text-xs">
+                        <tbody>
+                          <tr>
+                            <td className="w-20 py-0.5 font-medium">Nomor</td>
+                            <td className="w-3">:</td>
+                            <td className="font-mono font-semibold">{nomorSurat}</td>
+                          </tr>
+                          <tr>
+                            <td className="py-0.5 font-medium">Lampiran</td>
+                            <td>:</td>
+                            <td>-</td>
+                          </tr>
+                          <tr>
+                            <td className="py-0.5 font-medium align-top">Perihal</td>
+                            <td className="align-top">:</td>
+                            <td className="font-bold underline">{halSuratUndangan}</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+
+                    <div className="text-right">
+                      <p>{schoolInfo.kecamatan || 'Bandung Barat'}, {tanggalSurat}</p>
+                    </div>
+                  </div>
+
+                  {/* Recipient / Kepada Yth */}
+                  <div className="text-xs space-y-1 pt-2">
+                    <p>Kepada Yth.</p>
+                    <p className="font-bold text-sm uppercase">{tujuanSuratUndangan}</p>
+                    <p>{schoolInfo.name}</p>
+                    <p>di Tempat</p>
+                  </div>
+
+                  {/* Salam Pembuka */}
+                  <div className="text-xs pt-2 space-y-2">
+                    <p className="font-medium">Assalamu'alaikum Wr. Wb. / Salam Sejahtera,</p>
+                    <p className="text-justify leading-relaxed indent-8">
+                      {pengantarUndangan}
+                    </p>
+                  </div>
+
+                  {/* Rincian Rapat Box */}
+                  <div className="my-3 p-3 bg-slate-50/90 border border-slate-300 rounded-lg text-xs space-y-1.5 ml-4 mr-4">
+                    <table className="w-full text-xs">
+                      <tbody>
+                        <tr>
+                          <td className="w-36 py-1 font-semibold text-slate-700">Hari / Tanggal</td>
+                          <td className="w-4">:</td>
+                          <td className="font-bold text-slate-900">{hariTanggalUndangan}</td>
+                        </tr>
+                        <tr>
+                          <td className="py-1 font-semibold text-slate-700">Waktu Pelaksanaan</td>
+                          <td>:</td>
+                          <td className="font-bold text-slate-900">{waktuUndangan}</td>
+                        </tr>
+                        <tr>
+                          <td className="py-1 font-semibold text-slate-700">Tempat Rapat</td>
+                          <td>:</td>
+                          <td className="font-bold text-slate-900">{tempatUndangan}</td>
+                        </tr>
+                        <tr>
+                          <td className="py-1 font-semibold text-slate-700 align-top">Agenda / Acara</td>
+                          <td className="align-top">:</td>
+                          <td className="align-top font-medium whitespace-pre-line leading-normal text-slate-900">
+                            {agendaUndangan}
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Penutup & Catatan */}
+                  <div className="text-xs space-y-2">
+                    <p className="text-justify leading-relaxed indent-8">
+                      Mengingat pentingnya agenda acara tersebut, kami sangat mengharapkan kehadiran Bapak/Ibu tepat pada waktunya.
+                    </p>
+                    {catatanUndangan && (
+                      <p className="text-xs italic text-slate-800 bg-amber-50/80 p-2.5 rounded border-l-2 border-amber-500">
+                        <strong>Catatan:</strong> {catatanUndangan}
+                      </p>
+                    )}
+                    <p className="pt-1">
+                      Demikian surat undangan ini kami sampaikan. Atas perhatian, kehadiran, dan kerja sama Bapak/Ibu, kami ucapkan terima kasih.
+                    </p>
+                    <p className="font-medium pt-1">Wassalamu'alaikum Wr. Wb.</p>
+                  </div>
+
+                  {/* Tanda Tangan Kepala Sekolah */}
+                  <div className="pt-6 flex justify-end text-xs font-sans">
+                    <div className="text-center w-64 space-y-1">
+                      <p>Kepala {schoolInfo.name}</p>
+                      <div className="h-20" />
+                      <p className="font-bold underline propercase">{schoolInfo.kepalaSekolah}</p>
+                      <p className="text-[11px] font-mono">NIP. {schoolInfo.nipKepala}</p>
                     </div>
                   </div>
                 </div>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Printer, User, Briefcase, MapPin, CreditCard, Award, Phone, Mail } from 'lucide-react';
+import { X, Printer, User, Briefcase, MapPin, CreditCard, Award, Phone, Mail, GraduationCap, BookOpen } from 'lucide-react';
 import { Teacher, SchoolInfo } from '../types';
 
 interface TeacherDetailModalProps {
@@ -136,7 +136,7 @@ export const TeacherDetailModal: React.FC<TeacherDetailModalProps> = ({
           {/* SECTION 2: KEPEGAWAIAN & TUGAS */}
           <div className="space-y-2">
             <h3 className="text-xs font-bold uppercase tracking-wider text-emerald-800 border-b border-emerald-200 pb-1 flex items-center gap-1.5">
-              <Briefcase className="w-4 h-4 text-emerald-600" /> 2. DATA KEPEGAWAIAN & TUGAS
+              <Briefcase className="w-4 h-4 text-emerald-600" /> 2. DATA KEPEGAWAIAN & SK
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-y-2 gap-x-4 text-xs bg-slate-50/50 p-3 rounded-lg border border-slate-200">
               <div><span className="text-slate-500 block text-[10px]">Status Kepegawaian:</span><span className="font-bold text-emerald-700">{teacher.statusKepegawaian || 'PNS'}</span></div>
@@ -154,10 +154,26 @@ export const TeacherDetailModal: React.FC<TeacherDetailModalProps> = ({
             </div>
           </div>
 
-          {/* SECTION 3: ALAMAT DOMISILI */}
+          {/* SECTION 3: TUGAS MENGAJAR & SERDIK */}
           <div className="space-y-2">
             <h3 className="text-xs font-bold uppercase tracking-wider text-emerald-800 border-b border-emerald-200 pb-1 flex items-center gap-1.5">
-              <MapPin className="w-4 h-4 text-emerald-600" /> 3. ALAMAT DOMISILI & KONTAK
+              <GraduationCap className="w-4 h-4 text-emerald-600" /> 3. DATA TUGAS MENGAJAR & SERDIK
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-y-2 gap-x-4 text-xs bg-indigo-50/40 p-3 rounded-lg border border-indigo-100">
+              <div><span className="text-slate-500 block text-[10px]">Mata Pelajaran Diampu:</span><span className="font-bold text-indigo-900">{teacher.mapelDiampu || teacher.jenisPtk || 'Guru Kelas SD'}</span></div>
+              <div><span className="text-slate-500 block text-[10px]">Rombel / Kelas Mengajar:</span><span className="font-bold text-slate-800">{teacher.rombelMengajar || '-'}</span></div>
+              <div><span className="text-slate-500 block text-[10px]">Jam Mengajar (JJM):</span><span className="font-bold text-emerald-700">{teacher.jumlahJamMengajar ? `${teacher.jumlahJamMengajar} Jam/Minggu` : '-'}</span></div>
+              <div><span className="text-slate-500 block text-[10px]">SK Tugas Mengajar:</span><span className="font-semibold font-mono">{teacher.skMengajar || '-'}</span></div>
+              <div><span className="text-slate-500 block text-[10px]">Tanggal SK Mengajar:</span><span className="font-semibold">{teacher.tanggalSkMengajar || '-'}</span></div>
+              <div><span className="text-slate-500 block text-[10px]">Status Sertifikasi:</span><span className="font-bold text-teal-800">{teacher.statusSertifikasi || 'Sudah Sertifikasi'}</span></div>
+              <div><span className="text-slate-500 block text-[10px]">No. Registrasi Guru (NRG):</span><span className="font-semibold font-mono">{teacher.nrg || '-'}</span></div>
+            </div>
+          </div>
+
+          {/* SECTION 4: ALAMAT DOMISILI */}
+          <div className="space-y-2">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-emerald-800 border-b border-emerald-200 pb-1 flex items-center gap-1.5">
+              <MapPin className="w-4 h-4 text-emerald-600" /> 4. ALAMAT DOMISILI & KONTAK
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-y-2 gap-x-4 text-xs bg-slate-50/50 p-3 rounded-lg border border-slate-200">
               <div className="sm:col-span-2"><span className="text-slate-500 block text-[10px]">Alamat Jalan:</span><span className="font-semibold">{teacher.alamatJalan || '-'}</span></div>

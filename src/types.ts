@@ -192,6 +192,16 @@ export interface Teacher {
   bujur: string;
   nuks: string;
   fotoUrl?: string;
+
+  // Tugas Mengajar & Pembelajaran (Dapodik)
+  mapelDiampu?: string;
+  rombelMengajar?: string;
+  jumlahJamMengajar?: string;
+  skMengajar?: string;
+  tanggalSkMengajar?: string;
+  statusSertifikasi?: string;
+  nrg?: string;
+
   createdAt?: string;
   updatedAt?: string;
 }

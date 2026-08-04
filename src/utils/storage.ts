@@ -567,7 +567,14 @@ export function exportTeachersToExcel(teachers: Teacher[], fileName = 'data_guru
     'Karis/Karsu': t.karisKarsu || '',
     'Lintang': t.lintang || '',
     'Bujur': t.bujur || '',
-    'NUKS': t.nuks || ''
+    'NUKS': t.nuks || '',
+    'Mata Pelajaran Diampu': t.mapelDiampu || '',
+    'Rombel Mengajar': t.rombelMengajar || '',
+    'Jam Mengajar (JJM)': t.jumlahJamMengajar || '',
+    'SK Tugas Mengajar': t.skMengajar || '',
+    'Tanggal SK Mengajar': t.tanggalSkMengajar || '',
+    'Status Sertifikasi': t.statusSertifikasi || '',
+    'NRG': t.nrg || ''
   }));
 
   const worksheet = XLSX.utils.json_to_sheet(data);
@@ -722,6 +729,13 @@ export function parseTeachersFromExcel(file: File): Promise<Teacher[]> {
         const idxLintang = getColIdx(['lintang']);
         const idxBujur = getColIdx(['bujur']);
         const idxNuks = getColIdx(['nuks']);
+        const idxMapel = getColIdx(['mata pelajaran', 'mapel']);
+        const idxRombel = getColIdx(['rombel mengajar', 'rombel']);
+        const idxJam = getColIdx(['jam mengajar', 'jjm']);
+        const idxSkMengajar = getColIdx(['sk tugas mengajar', 'sk mengajar']);
+        const idxTglSkMengajar = getColIdx(['tanggal sk mengajar']);
+        const idxSerdik = getColIdx(['status sertifikasi', 'sertifikasi']);
+        const idxNrg = getColIdx(['nrg']);
 
         const dataRows = rawData.slice(headerRowIndex + 1);
 
@@ -787,7 +801,14 @@ export function parseTeachersFromExcel(file: File): Promise<Teacher[]> {
               karisKarsu: val(idxKaris),
               lintang: val(idxLintang),
               bujur: val(idxBujur),
-              nuks: val(idxNuks)
+              nuks: val(idxNuks),
+              mapelDiampu: val(idxMapel) || val(idxJenisPtk) || 'Guru Kelas SD',
+              rombelMengajar: val(idxRombel),
+              jumlahJamMengajar: val(idxJam) || '24',
+              skMengajar: val(idxSkMengajar),
+              tanggalSkMengajar: val(idxTglSkMengajar),
+              statusSertifikasi: val(idxSerdik) || 'Sudah Sertifikasi',
+              nrg: val(idxNrg)
             };
           });
 

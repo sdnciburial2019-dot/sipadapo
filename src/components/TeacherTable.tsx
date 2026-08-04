@@ -63,7 +63,10 @@ export const TeacherTable: React.FC<TeacherTableProps> = ({
         (t.nuptk && t.nuptk.includes(q)) ||
         (t.nip && t.nip.includes(q)) ||
         (t.nik && t.nik.includes(q)) ||
-        (t.hp && t.hp.includes(q));
+        (t.hp && t.hp.includes(q)) ||
+        (t.mapelDiampu && t.mapelDiampu.toLowerCase().includes(q)) ||
+        (t.rombelMengajar && t.rombelMengajar.toLowerCase().includes(q)) ||
+        (t.tugasTambahan && t.tugasTambahan.toLowerCase().includes(q));
 
       const matchStatus = filterStatus === 'all' || t.statusKepegawaian === filterStatus;
       const matchJenis = filterJenisPtk === 'all' || t.jenisPtk === filterJenisPtk;
@@ -301,7 +304,7 @@ export const TeacherTable: React.FC<TeacherTableProps> = ({
                 <th className="py-3 px-4">NUPTK / NIP</th>
                 <th className="py-3 px-4">JK</th>
                 <th className="py-3 px-4">Status & Jenis PTK</th>
-                <th className="py-3 px-4">Tugas Tambahan</th>
+                <th className="py-3 px-4">Tugas Mengajar & Tambahan</th>
                 <th className="py-3 px-4">Kontak (HP/Email)</th>
                 <th className="py-3 px-4 text-center">Aksi</th>
               </tr>
@@ -386,14 +389,30 @@ export const TeacherTable: React.FC<TeacherTableProps> = ({
                         </div>
                       </td>
 
-                      <td className="py-3 px-4 font-medium text-slate-700">
-                        {t.tugasTambahan ? (
-                          <span className="px-2 py-0.5 bg-amber-50 text-amber-900 border border-amber-200/60 rounded text-[10.5px] font-semibold">
-                            {t.tugasTambahan}
-                          </span>
-                        ) : (
-                          <span className="text-slate-400 text-[11px]">-</span>
-                        )}
+                      <td className="py-3 px-4 text-xs font-medium text-slate-700">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="px-2 py-0.5 bg-indigo-50 text-indigo-800 border border-indigo-200/60 rounded text-[10.5px] font-bold">
+                              {t.mapelDiampu || t.jenisPtk || 'Guru Kelas'}
+                            </span>
+                            {t.rombelMengajar && (
+                              <span className="px-1.5 py-0.5 bg-slate-100 text-slate-700 rounded text-[10px] font-semibold">
+                                {t.rombelMengajar}
+                              </span>
+                            )}
+                            {t.jumlahJamMengajar && (
+                              <span className="text-[10px] text-emerald-700 font-bold bg-emerald-50 px-1 rounded">
+                                {t.jumlahJamMengajar} J/m
+                              </span>
+                            )}
+                          </div>
+                          {t.tugasTambahan && (
+                            <div className="text-[10.5px] text-amber-800 font-medium flex items-center gap-1">
+                              <span className="text-[9px] bg-amber-100 px-1 rounded uppercase font-bold text-amber-900">Tambahan</span>
+                              <span>{t.tugasTambahan}</span>
+                            </div>
+                          )}
+                        </div>
                       </td>
 
                       <td className="py-3 px-4 text-slate-600">

@@ -96,8 +96,11 @@ export const TeacherCardPrintModal: React.FC<TeacherCardPrintModalProps> = ({
                 <h4 className="font-extrabold text-white text-[12px] leading-snug line-clamp-1">{teacher.nama}</h4>
                 <p className="text-emerald-200 font-mono text-[9px]">NUPTK: {teacher.nuptk || '-'}</p>
                 <p className="text-slate-300 font-mono text-[8.5px]">NIP: {teacher.nip || '-'}</p>
+                <p className="text-amber-300 font-semibold text-[8.5px] line-clamp-1">
+                  Mengajar: {teacher.mapelDiampu || teacher.jenisPtk || 'Guru Kelas SD'} {teacher.rombelMengajar ? `(${teacher.rombelMengajar})` : ''}
+                </p>
                 {teacher.tugasTambahan && (
-                  <p className="text-amber-300 font-semibold text-[8.5px]">Tugas: {teacher.tugasTambahan}</p>
+                  <p className="text-amber-300 font-semibold text-[8.5px] line-clamp-1">Tugas: {teacher.tugasTambahan}</p>
                 )}
               </div>
             </div>

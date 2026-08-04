@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, User, Briefcase, MapPin, CreditCard, Save, Camera, Upload, Trash2 } from 'lucide-react';
+import { X, User, Briefcase, MapPin, CreditCard, Save, Camera, Upload, Trash2, BookOpen, GraduationCap } from 'lucide-react';
 import { Teacher } from '../types';
 
 interface TeacherFormModalProps {
@@ -15,7 +15,7 @@ export const TeacherFormModal: React.FC<TeacherFormModalProps> = ({
   onSave,
   teacherToEdit
 }) => {
-  const [activeTab, setActiveTab] = useState<'identitas' | 'kepegawaian' | 'alamat' | 'keuangan'>('identitas');
+  const [activeTab, setActiveTab] = useState<'identitas' | 'kepegawaian' | 'mengajar' | 'alamat' | 'keuangan'>('identitas');
 
   const [formData, setFormData] = useState<Partial<Teacher>>(() => {
     if (teacherToEdit) return { ...teacherToEdit };
@@ -71,7 +71,14 @@ export const TeacherFormModal: React.FC<TeacherFormModalProps> = ({
       lintang: '',
       bujur: '',
       nuks: '',
-      fotoUrl: ''
+      fotoUrl: '',
+      mapelDiampu: 'Guru Kelas SD',
+      rombelMengajar: 'Kelas 1 A',
+      jumlahJamMengajar: '24',
+      skMengajar: '',
+      tanggalSkMengajar: '',
+      statusSertifikasi: 'Sudah Sertifikasi',
+      nrg: ''
     };
   });
 
@@ -132,7 +139,14 @@ export const TeacherFormModal: React.FC<TeacherFormModalProps> = ({
           lintang: '',
           bujur: '',
           nuks: '',
-          fotoUrl: ''
+          fotoUrl: '',
+          mapelDiampu: 'Guru Kelas SD',
+          rombelMengajar: 'Kelas 1 A',
+          jumlahJamMengajar: '24',
+          skMengajar: '',
+          tanggalSkMengajar: '',
+          statusSertifikasi: 'Sudah Sertifikasi',
+          nrg: ''
         });
       }
       setActiveTab('identitas');
@@ -208,7 +222,20 @@ export const TeacherFormModal: React.FC<TeacherFormModalProps> = ({
             }`}
           >
             <Briefcase className="w-4 h-4" />
-            2. Kepegawaian & Tugas
+            2. Kepegawaian & SK
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('mengajar')}
+            className={`flex items-center gap-2 py-3 px-4 font-semibold text-xs border-b-2 transition cursor-pointer whitespace-nowrap ${
+              activeTab === 'mengajar'
+                ? 'border-emerald-600 text-emerald-700 bg-white shadow-2xs rounded-t-lg'
+                : 'border-transparent text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <GraduationCap className="w-4 h-4" />
+            3. Tugas Mengajar & Serdik
           </button>
 
           <button
@@ -221,7 +248,7 @@ export const TeacherFormModal: React.FC<TeacherFormModalProps> = ({
             }`}
           >
             <MapPin className="w-4 h-4" />
-            3. Alamat & Kontak
+            4. Alamat & Kontak
           </button>
 
           <button
@@ -234,7 +261,7 @@ export const TeacherFormModal: React.FC<TeacherFormModalProps> = ({
             }`}
           >
             <CreditCard className="w-4 h-4" />
-            4. Keuangan & Lainnya
+            5. Keuangan & Lainnya
           </button>
         </div>
 
@@ -577,6 +604,135 @@ export const TeacherFormModal: React.FC<TeacherFormModalProps> = ({
                   <option value="Ya">Ya</option>
                   <option value="Tidak">Tidak</option>
                 </select>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 3: TUGAS MENGAJAR & SERDIK */}
+          {activeTab === 'mengajar' && (
+            <div className="space-y-4 text-xs">
+              <div className="p-3 bg-indigo-50 border border-indigo-200 rounded-xl text-indigo-900 text-xs flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <GraduationCap className="w-5 h-5 text-indigo-600 shrink-0" />
+                  <span>
+                    <strong>Rincian Tugas Mengajar & Pembelajaran Dapodik:</strong> Masukkan Mata Pelajaran yang diampu, Rombel/Kelas mengajar, Jam Mengajar (JJM), serta nomor SK Tugas Pembelajaran.
+                  </span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Mata Pelajaran (Mapel) Utama / Diampu *</label>
+                  <select
+                    name="mapelDiampu"
+                    value={formData.mapelDiampu || 'Guru Kelas SD'}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 font-semibold text-slate-800"
+                  >
+                    <option value="Guru Kelas SD">Guru Kelas SD</option>
+                    <option value="Pendidikan Agama Islam">Pendidikan Agama Islam (PAI)</option>
+                    <option value="Pendidikan Agama Kristen">Pendidikan Agama Kristen</option>
+                    <option value="PJOK">PJOK (Olahraga)</option>
+                    <option value="Bahasa Inggris">Bahasa Inggris</option>
+                    <option value="Bahasa Sunda">Bahasa Sunda / Daerah</option>
+                    <option value="Matematika">Matematika</option>
+                    <option value="IPAS">IPAS (Sains & Sosial)</option>
+                    <option value="Pendidikan Pancasila">Pendidikan Pancasila / PKn</option>
+                    <option value="Seni Budaya">Seni Budaya & Prakarya (SBdP)</option>
+                    <option value="Bimbingan Konseling">Bimbingan & Konseling (BK)</option>
+                    <option value="Tenaga Kependidikan / Non-Mengajar">Tenaga Kependidikan / Non-Mengajar</option>
+                    <option value="Lainnya">Lainnya</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Rombel / Kelas Mengajar Utama</label>
+                  <select
+                    name="rombelMengajar"
+                    value={formData.rombelMengajar || 'Kelas 1 A'}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 font-semibold text-slate-800"
+                  >
+                    <option value="Kelas 1 A">Kelas 1 A</option>
+                    <option value="Kelas 1 B">Kelas 1 B</option>
+                    <option value="Kelas 2 A">Kelas 2 A</option>
+                    <option value="Kelas 2 B">Kelas 2 B</option>
+                    <option value="Kelas 3 A">Kelas 3 A</option>
+                    <option value="Kelas 3 B">Kelas 3 B</option>
+                    <option value="Kelas 4 A">Kelas 4 A</option>
+                    <option value="Kelas 4 B">Kelas 4 B</option>
+                    <option value="Kelas 5 A">Kelas 5 A</option>
+                    <option value="Kelas 5 B">Kelas 5 B</option>
+                    <option value="Kelas 6 A">Kelas 6 A</option>
+                    <option value="Kelas 6 B">Kelas 6 B</option>
+                    <option value="Semua Rombel (Kelas 1 - 6)">Semua Rombel (Kelas 1 - 6)</option>
+                    <option value="Tidak Mengajar Rombel">Tidak Mengajar Rombel</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Jumlah Jam Mengajar (JJM Tatap Muka/Minggu)</label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      name="jumlahJamMengajar"
+                      value={formData.jumlahJamMengajar || '24'}
+                      onChange={handleChange}
+                      placeholder="24"
+                      className="w-full px-3 py-2 pr-16 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono"
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-[11px]">Jam/Minggu</span>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Nomor SK Tugas Mengajar / Pembelajaran</label>
+                  <input
+                    type="text"
+                    name="skMengajar"
+                    value={formData.skMengajar || ''}
+                    onChange={handleChange}
+                    placeholder="Contoh: 421.2/012/SK-PBM/2025"
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Tanggal SK Tugas Mengajar</label>
+                  <input
+                    type="date"
+                    name="tanggalSkMengajar"
+                    value={formData.tanggalSkMengajar || ''}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Status Sertifikasi Pendidik (Serdik)</label>
+                  <select
+                    name="statusSertifikasi"
+                    value={formData.statusSertifikasi || 'Sudah Sertifikasi'}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 font-semibold"
+                  >
+                    <option value="Sudah Sertifikasi">Sudah Sertifikasi (Serdik)</option>
+                    <option value="Belum Sertifikasi">Belum Sertifikasi</option>
+                    <option value="Dalam Proses PPG">Dalam Proses PPG</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">Nomor Registrasi Guru (NRG / Serdik)</label>
+                  <input
+                    type="text"
+                    name="nrg"
+                    value={formData.nrg || ''}
+                    onChange={handleChange}
+                    placeholder="Contoh: 21102938120391"
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono"
+                  />
+                </div>
               </div>
             </div>
           )}
