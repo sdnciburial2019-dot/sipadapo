@@ -36,6 +36,7 @@ export type DocType =
   | 'mutasi_keluar' 
   | 'pip' 
   | 'undangan_rapat'
+  | 'berita_acara_rapat'
   | 'rapat_ortu'
   | 'daftar_nilai';
 
@@ -197,6 +198,56 @@ export const AdminDocumentsModal: React.FC<AdminDocumentsModalProps> = ({
       setTujuanSuratUndangan('Bapak/Ibu Pengurus Komite Sekolah & Tokoh Masyarakat');
       setPengantarUndangan('Dalam rangka meningkatkan mutu pelayanan pendidikan serta penyusunan Rencana Anggaran Pendapatan dan Belanja Sekolah (RAPBS), kami mengharapkan kehadiran Bapak/Ibu Pengurus Komite Sekolah pada:');
       setAgendaUndangan('1. Pembahasan Program Pengembangan Sekolah\n2. Penyusunan Rencana Anggaran (RAPBS)\n3. Evaluasi Sarana & Prasarana Sekolah\n4. Lain-lain');
+    }
+  };
+
+  // 8. Berita Acara Rapat Specific
+  const [jenisRapatBa, setJenisRapatBa] = useState<'ortu' | 'guru' | 'komite' | 'kustom'>('ortu');
+  const [judulBeritaAcara, setJudulBeritaAcara] = useState<string>(
+    'BERITA ACARA RAPAT SOSIALISASI PROGRAM KERJA & MUSYAWARAH ORANG TUA / WALI MURID'
+  );
+  const [hariTanggalBa, setHariTanggalBa] = useState<string>('Sabtu, 25 Juli 2026');
+  const [waktuBa, setWaktuBa] = useState<string>('08:30 WIB s.d. 11:30 WIB');
+  const [tempatBa, setTempatBa] = useState<string>('Ruang Aula / Kelas SD Negeri Ciburial');
+  const [pimpinanRapat, setPimpinanRapat] = useState<string>('Della Juliana Rismalinda, S.Pd');
+  const [jabatanPimpinan, setJabatanPimpinan] = useState<string>('Kepala Sekolah');
+  const [notulisRapat, setNotulisRapat] = useState<string>('Siti Rahmawati, S.Pd');
+  const [jabatanNotulis, setJabatanNotulis] = useState<string>('Notulis / Sekretaris Rapat');
+  const [jumlahUndanganBa, setJumlahUndanganBa] = useState<string>('135 Orang');
+  const [jumlahHadirBa, setJumlahHadirBa] = useState<string>('120 Orang');
+  const [pokokBahasanBa, setPokokBahasanBa] = useState<string>(
+    '1. Pemaparan Visi, Misi, dan Program Kerja Sekolah TA 2026/2027\n2. Sosialisasi Kurikulum Operasional Satuan Pendidikan (KOSP)\n3. Pembahasan Tata Tertib Siswa, Ekstrakurikuler, dan Komite Sekolah\n4. Musyawarah & Tanya Jawab Orang Tua / Wali Murid'
+  );
+  const [hasilKeputusanBa, setHasilKeputusanBa] = useState<string>(
+    '1. Menyetujui dan mendukung penuh Program Kerja Sekolah dan Kurikulum TA 2026/2027.\n2. Mengesahkan Tata Tertib Siswa dan Kesepakatan Bersama Komite Sekolah.\n3. Menyepakati Pembentukan Paguyuban Orang Tua Murid di setiap Rombel.\n4. Menyetujui Pelaksanaan Kegiatan Ekstrakurikuler Wajib dan Pilihan.'
+  );
+
+  const handlePresetBaChange = (type: 'ortu' | 'guru' | 'komite' | 'kustom') => {
+    setJenisRapatBa(type);
+    if (type === 'ortu') {
+      setJudulBeritaAcara('BERITA ACARA RAPAT SOSIALISASI PROGRAM KERJA & MUSYAWARAH ORANG TUA / WALI MURID');
+      setPokokBahasanBa('1. Pemaparan Visi, Misi, dan Program Kerja Sekolah TA 2026/2027\n2. Sosialisasi Kurikulum Operasional Satuan Pendidikan (KOSP)\n3. Pembahasan Tata Tertib Siswa, Ekstrakurikuler, dan Komite Sekolah\n4. Musyawarah & Tanya Jawab Orang Tua / Wali Murid');
+      setHasilKeputusanBa('1. Menyetujui dan mendukung penuh Program Kerja Sekolah dan Kurikulum TA 2026/2027.\n2. Mengesahkan Tata Tertib Siswa dan Kesepakatan Bersama Komite Sekolah.\n3. Menyepakati Pembentukan Paguyuban Orang Tua Murid di setiap Rombel.\n4. Menyetujui Pelaksanaan Kegiatan Ekstrakurikuler Wajib dan Pilihan.');
+      setPimpinanRapat(schoolInfo.kepalaSekolah || 'Della Juliana Rismalinda, S.Pd');
+      setJabatanPimpinan('Kepala Sekolah');
+      setNotulisRapat('Siti Rahmawati, S.Pd');
+      setJabatanNotulis('Notulis / Sekretaris');
+    } else if (type === 'guru') {
+      setJudulBeritaAcara('BERITA ACARA RAPAT DEWAN GURU & EVALUASI PEMBELAJARAN');
+      setPokokBahasanBa('1. Pembagian Tugas Mengajar & Beban Kerja Guru (JJM) TA 2026/2027\n2. Penyusunan Perangkat Ajar (Modul Ajar, ATP, Prota, Promes)\n3. Pembahasan Kedisiplinan Guru, Piket, dan Administrasi Dapodik\n4. Evaluasi Hasil Belajar & Program Remedial / Pengayaan');
+      setHasilKeputusanBa('1. Menetapkan Pembagian Tugas Mengajar dan Tugas Tambahan PTK.\n2. Menyepakati Batas Waktu Pengumpulan Perangkat Ajar Lengkap.\n3. Menetapkan Jadwal Piket Harian dan Pembina Upacara.\n4. Menyepakati Strategi Peningkatan Kedisiplinan & Mutu Pembelajaran.');
+      setPimpinanRapat(schoolInfo.kepalaSekolah || 'Della Juliana Rismalinda, S.Pd');
+      setJabatanPimpinan('Kepala Sekolah');
+      setNotulisRapat('Guru K3S / Sekretaris Sekolah');
+      setJabatanNotulis('Notulis Rapat');
+    } else if (type === 'komite') {
+      setJudulBeritaAcara('BERITA ACARA RAPAT MUSYAWARAH KOMITE SEKOLAH & PENGEMBANGAN SARPRAS');
+      setPokokBahasanBa('1. Pembahasan Rencana Anggaran Pendapatan dan Belanja Sekolah (RAPBS)\n2. Evaluasi Sarana dan Prasarana Penunjang Belajar Siswa\n3. Program Kemitraan Sekolah dengan Masyarakat & Stakeholder\n4. Rencana Kerja Bakti dan Gotong Royong Lingkungan Sekolah');
+      setHasilKeputusanBa('1. Menyetujui Rancangan Anggaran Pendapatan & Belanja Sekolah (RAPBS).\n2. Sepakat Menggalang Dukungan Sarpras Penunjang Kegiatan Ekstrakurikuler.\n3. Menyetujui Program Kemitraan dan Program Gotong Royong Berkala.');
+      setPimpinanRapat('H. Ahmad Hidayat, S.Pd.I');
+      setJabatanPimpinan('Ketua Komite Sekolah');
+      setNotulisRapat('Drs. M. Ridwan');
+      setJabatanNotulis('Sekretaris Komite');
     }
   };
 
@@ -413,6 +464,18 @@ export const AdminDocumentsModal: React.FC<AdminDocumentsModalProps> = ({
           >
             <Mail className="w-4 h-4" />
             <span>Surat Undangan Rapat</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('berita_acara_rapat')}
+            className={`px-3 py-2 rounded-lg flex items-center gap-2 shrink-0 transition-all cursor-pointer ${
+              activeTab === 'berita_acara_rapat'
+                ? 'bg-emerald-500 text-slate-950 font-bold shadow-sm'
+                : 'hover:bg-slate-700 text-slate-300'
+            }`}
+          >
+            <FileText className="w-4 h-4" />
+            <span>Berita Acara Rapat</span>
           </button>
 
           <button
@@ -649,7 +712,7 @@ export const AdminDocumentsModal: React.FC<AdminDocumentsModalProps> = ({
             )}
 
             {/* Common Letter Metadata */}
-            {['aktif', 'mutasi_masuk', 'mutasi_keluar', 'pip', 'undangan_rapat'].includes(activeTab) && (
+            {['aktif', 'mutasi_masuk', 'mutasi_keluar', 'pip', 'undangan_rapat', 'berita_acara_rapat'].includes(activeTab) && (
               <>
                 <div className="space-y-1">
                   <div className="flex items-center justify-between">
@@ -1050,6 +1113,188 @@ export const AdminDocumentsModal: React.FC<AdminDocumentsModalProps> = ({
                     value={catatanUndangan}
                     onChange={e => setCatatanUndangan(e.target.value)}
                     className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 text-xs"
+                  />
+                </div>
+              </>
+            )}
+
+            {/* Berita Acara Rapat Controls */}
+            {activeTab === 'berita_acara_rapat' && (
+              <>
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700 block text-xs">Pilih Preset Berita Acara:</label>
+                  <div className="grid grid-cols-2 gap-1 text-[11px]">
+                    <button
+                      type="button"
+                      onClick={() => handlePresetBaChange('ortu')}
+                      className={`p-1.5 rounded-lg border font-medium transition-all text-center ${
+                        jenisRapatBa === 'ortu'
+                          ? 'bg-emerald-600 text-white border-emerald-600 font-bold'
+                          : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
+                      }`}
+                    >
+                      Orang Tua / Wali
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handlePresetBaChange('guru')}
+                      className={`p-1.5 rounded-lg border font-medium transition-all text-center ${
+                        jenisRapatBa === 'guru'
+                          ? 'bg-emerald-600 text-white border-emerald-600 font-bold'
+                          : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
+                      }`}
+                    >
+                      Dewan Guru
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handlePresetBaChange('komite')}
+                      className={`p-1.5 rounded-lg border font-medium transition-all text-center ${
+                        jenisRapatBa === 'komite'
+                          ? 'bg-emerald-600 text-white border-emerald-600 font-bold'
+                          : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
+                      }`}
+                    >
+                      Komite Sekolah
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setJenisRapatBa('kustom')}
+                      className={`p-1.5 rounded-lg border font-medium transition-all text-center ${
+                        jenisRapatBa === 'kustom'
+                          ? 'bg-emerald-600 text-white border-emerald-600 font-bold'
+                          : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
+                      }`}
+                    >
+                      Kustom
+                    </button>
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700 block">Judul / Tema Berita Acara:</label>
+                  <textarea
+                    rows={2}
+                    value={judulBeritaAcara}
+                    onChange={e => setJudulBeritaAcara(e.target.value)}
+                    className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 text-xs font-bold uppercase"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700 block">Hari / Tanggal Rapat:</label>
+                  <input
+                    type="text"
+                    value={hariTanggalBa}
+                    onChange={e => setHariTanggalBa(e.target.value)}
+                    placeholder="Contoh: Sabtu, 25 Juli 2026"
+                    className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 text-xs"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-1">
+                    <label className="font-semibold text-slate-700 block">Waktu Rapat:</label>
+                    <input
+                      type="text"
+                      value={waktuBa}
+                      onChange={e => setWaktuBa(e.target.value)}
+                      placeholder="08:30 s.d. 11:30 WIB"
+                      className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 text-xs"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="font-semibold text-slate-700 block">Tempat Rapat:</label>
+                    <input
+                      type="text"
+                      value={tempatBa}
+                      onChange={e => setTempatBa(e.target.value)}
+                      placeholder="Ruang Aula Sekolah"
+                      className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 text-xs"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-1">
+                    <label className="font-semibold text-slate-700 block">Pimpinan Rapat:</label>
+                    <input
+                      type="text"
+                      value={pimpinanRapat}
+                      onChange={e => setPimpinanRapat(e.target.value)}
+                      className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 text-xs font-medium"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="font-semibold text-slate-700 block">Jabatan Pimpinan:</label>
+                    <input
+                      type="text"
+                      value={jabatanPimpinan}
+                      onChange={e => setJabatanPimpinan(e.target.value)}
+                      className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 text-xs"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-1">
+                    <label className="font-semibold text-slate-700 block">Notulis Rapat:</label>
+                    <input
+                      type="text"
+                      value={notulisRapat}
+                      onChange={e => setNotulisRapat(e.target.value)}
+                      className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 text-xs font-medium"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="font-semibold text-slate-700 block">Jabatan Notulis:</label>
+                    <input
+                      type="text"
+                      value={jabatanNotulis}
+                      onChange={e => setJabatanNotulis(e.target.value)}
+                      className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 text-xs"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-1">
+                    <label className="font-semibold text-slate-700 block">Jumlah Undangan:</label>
+                    <input
+                      type="text"
+                      value={jumlahUndanganBa}
+                      onChange={e => setJumlahUndanganBa(e.target.value)}
+                      className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 text-xs"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="font-semibold text-slate-700 block">Jumlah Hadir:</label>
+                    <input
+                      type="text"
+                      value={jumlahHadirBa}
+                      onChange={e => setJumlahHadirBa(e.target.value)}
+                      className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 text-xs"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700 block">Pokok Bahasan / Agenda:</label>
+                  <textarea
+                    rows={4}
+                    value={pokokBahasanBa}
+                    onChange={e => setPokokBahasanBa(e.target.value)}
+                    className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 text-xs font-mono"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700 block">Hasil Keputusan / Kesepakatan:</label>
+                  <textarea
+                    rows={4}
+                    value={hasilKeputusanBa}
+                    onChange={e => setHasilKeputusanBa(e.target.value)}
+                    className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 text-xs font-mono"
                   />
                 </div>
               </>
@@ -1908,6 +2153,126 @@ export const AdminDocumentsModal: React.FC<AdminDocumentsModalProps> = ({
                       <p className="font-semibold">Kepala {schoolInfo.name}</p>
                       <div className="h-20" />
                       <p className="font-bold underline uppercase tracking-wide">{schoolInfo.kepalaSekolah}</p>
+                      <p className="text-[11px] font-mono text-slate-800">NIP. {schoolInfo.nipKepala}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* DOKUMEN: BERITA ACARA RAPAT */}
+              {activeTab === 'berita_acara_rapat' && (
+                <div className="space-y-4 font-sans text-slate-900 leading-relaxed">
+                  {/* Document Title & Number */}
+                  <div className="text-center space-y-1 pt-1">
+                    <h2 className="text-sm font-bold uppercase tracking-wide underline decoration-1 underline-offset-4">
+                      BERITA ACARA RAPAT
+                    </h2>
+                    <p className="text-xs font-bold text-slate-800 uppercase max-w-xl mx-auto px-4">
+                      {judulBeritaAcara}
+                    </p>
+                    <p className="text-xs font-mono text-slate-700">
+                      Nomor: {nomorSurat}
+                    </p>
+                  </div>
+
+                  {/* Pengantar Berita Acara */}
+                  <div className="text-xs pt-1 space-y-2">
+                    <p className="text-justify leading-relaxed indent-8 text-slate-900">
+                      Pada hari ini <strong className="font-bold text-slate-900">{hariTanggalBa}</strong>, bertempat di <strong className="font-bold text-slate-900">{tempatBa}</strong>, telah diselenggarakan musyawarah rapat <strong className="font-bold text-slate-900 lowercase">{judulBeritaAcara}</strong> yang dihadiri oleh unsur pimpinan rapat, pihak sekolah, komite, serta peserta rapat yang berkepentingan.
+                    </p>
+                  </div>
+
+                  {/* Rincian Pelaksanaan Rapat */}
+                  <div className="my-2 p-3 bg-slate-50/90 border border-slate-300 rounded-lg text-xs space-y-1.5 mx-1 shadow-2xs">
+                    <p className="font-bold text-xs border-b border-slate-200 pb-1 text-slate-800">
+                      A. PELAKSANAAN & PRESENSI RAPAT
+                    </p>
+                    <table className="w-full text-xs">
+                      <tbody>
+                        <tr>
+                          <td className="w-36 py-0.5 font-semibold text-slate-700">Hari / Tanggal</td>
+                          <td className="w-4 font-bold text-slate-700">:</td>
+                          <td className="font-bold text-slate-900">{hariTanggalBa}</td>
+                        </tr>
+                        <tr>
+                          <td className="py-0.5 font-semibold text-slate-700">Waktu Pelaksanaan</td>
+                          <td className="font-bold text-slate-700">:</td>
+                          <td className="font-medium text-slate-900">{waktuBa}</td>
+                        </tr>
+                        <tr>
+                          <td className="py-0.5 font-semibold text-slate-700">Tempat Rapat</td>
+                          <td className="font-bold text-slate-700">:</td>
+                          <td className="font-medium text-slate-900">{tempatBa}</td>
+                        </tr>
+                        <tr>
+                          <td className="py-0.5 font-semibold text-slate-700">Pimpinan Rapat</td>
+                          <td className="font-bold text-slate-700">:</td>
+                          <td className="font-semibold text-slate-900">{pimpinanRapat} ({jabatanPimpinan})</td>
+                        </tr>
+                        <tr>
+                          <td className="py-0.5 font-semibold text-slate-700">Notulis / Sekretaris</td>
+                          <td className="font-bold text-slate-700">:</td>
+                          <td className="font-medium text-slate-900">{notulisRapat} ({jabatanNotulis})</td>
+                        </tr>
+                        <tr>
+                          <td className="py-0.5 font-semibold text-slate-700">Kehadiran Peserta</td>
+                          <td className="font-bold text-slate-700">:</td>
+                          <td className="font-medium text-slate-900">
+                            Diundang: <span className="font-bold text-slate-800">{jumlahUndanganBa}</span> | Hadir: <span className="font-bold text-emerald-800">{jumlahHadirBa}</span>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Pokok Bahasan / Agenda */}
+                  <div className="space-y-1 text-xs pt-1">
+                    <h3 className="font-bold text-slate-900 border-b border-slate-300 pb-0.5 uppercase text-[11px]">
+                      B. POKOK BAHASAN & AGENDA RAPAT
+                    </h3>
+                    <div className="whitespace-pre-line leading-relaxed pl-2 font-medium text-slate-900">
+                      {pokokBahasanBa}
+                    </div>
+                  </div>
+
+                  {/* Hasil Keputusan & Kesepakatan */}
+                  <div className="space-y-1 text-xs pt-1">
+                    <h3 className="font-bold text-slate-900 border-b border-slate-300 pb-0.5 uppercase text-[11px]">
+                      C. HASIL MUSYAWARAH & KEPUTUSAN RAPAT
+                    </h3>
+                    <div className="whitespace-pre-line leading-relaxed pl-2 font-semibold text-slate-900 bg-slate-50/70 p-2.5 rounded border border-slate-200">
+                      {hasilKeputusanBa}
+                    </div>
+                  </div>
+
+                  {/* Penutup */}
+                  <div className="text-xs pt-2 space-y-1">
+                    <p className="text-justify leading-relaxed indent-8 text-slate-900">
+                      Demikian Berita Acara Rapat ini dibuat dan disahkan dengan sebenarnya dengan penuh rasa tanggung jawab untuk dipergunakan sebagaimana mestinya.
+                    </p>
+                  </div>
+
+                  {/* Tanda Tangan Notulis, Pimpinan & Mengetahui Kepala Sekolah */}
+                  <div className="pt-4 space-y-4 font-sans text-xs">
+                    <div className="flex justify-between items-start px-4">
+                      <div className="text-center w-52 space-y-1">
+                        <p className="font-medium text-slate-700">{jabatanNotulis}</p>
+                        <div className="h-16" />
+                        <p className="font-bold underline text-slate-900">{notulisRapat}</p>
+                      </div>
+
+                      <div className="text-center w-52 space-y-1">
+                        <p className="font-medium text-slate-700">{jabatanPimpinan}</p>
+                        <div className="h-16" />
+                        <p className="font-bold underline text-slate-900">{pimpinanRapat}</p>
+                      </div>
+                    </div>
+
+                    <div className="text-center w-64 mx-auto pt-2 space-y-1">
+                      <p className="text-slate-700">Mengetahui,</p>
+                      <p className="font-bold text-slate-900">Kepala {schoolInfo.name}</p>
+                      <div className="h-16" />
+                      <p className="font-bold underline uppercase tracking-wide text-slate-900">{schoolInfo.kepalaSekolah}</p>
                       <p className="text-[11px] font-mono text-slate-800">NIP. {schoolInfo.nipKepala}</p>
                     </div>
                   </div>
