@@ -127,43 +127,44 @@ export const PhysicalPeriodicalDataModal: React.FC<PhysicalPeriodicalDataModalPr
   const currentCardStudent = filteredStudents[cardIndex] || filteredStudents[0];
 
   return (
-    <div className="fixed inset-0 bg-slate-950/75 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 z-50 overflow-y-auto">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[92vh] flex flex-col overflow-hidden border border-slate-200">
+    <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-1.5 sm:p-4 z-50 overflow-y-auto">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[96vh] sm:max-h-[92vh] flex flex-col overflow-hidden border border-slate-200">
         {/* Header Modal */}
-        <div className="bg-slate-900 text-white px-5 py-4 flex items-center justify-between shrink-0 border-b border-slate-800">
-          <div className="flex items-center space-x-3">
-            <div className="p-2.5 bg-gradient-to-tr from-emerald-600 to-teal-500 text-white rounded-xl shadow-md">
-              <Activity className="w-6 h-6" />
+        <div className="bg-slate-900 text-white px-3 sm:px-5 py-3 sm:py-4 flex flex-wrap items-center justify-between shrink-0 border-b border-slate-800 gap-2">
+          <div className="flex items-center space-x-2.5 sm:space-x-3 min-w-0 flex-1">
+            <div className="p-2 sm:p-2.5 bg-gradient-to-tr from-emerald-600 to-teal-500 text-white rounded-xl shadow-md shrink-0">
+              <Activity className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
-            <div>
-              <h2 className="text-lg font-bold flex items-center gap-2">
-                Pengkinian Data Fisik & Periodik Murid
-                <span className="text-[10px] font-bold px-2 py-0.5 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-full">
-                  Dapodik Periodik
+            <div className="min-w-0">
+              <h2 className="text-sm sm:text-lg font-bold flex flex-wrap items-center gap-1.5 leading-snug">
+                <span>Pengkinian Data Fisik & Periodik</span>
+                <span className="text-[9px] sm:text-[10px] font-bold px-2 py-0.5 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-full shrink-0">
+                  Dapodik
                 </span>
               </h2>
-              <p className="text-xs text-slate-300">
-                Update pengukuran Tinggi Badan, Berat Badan, Lingkar Kepala, Jarak Sekolah, Transportasi & Saudara secara cepat per Rombel.
+              <p className="text-[11px] sm:text-xs text-slate-300 line-clamp-1 sm:line-clamp-none">
+                Update TB, BB, Lingkar Kepala, Transportasi & Periodik Murid.
               </p>
             </div>
           </div>
 
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-1.5 sm:space-x-2 shrink-0">
             <button
               onClick={handleSaveAll}
-              className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-md ${
+              className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-md ${
                 isSaved 
                   ? 'bg-emerald-500 text-slate-950' 
                   : 'bg-emerald-600 hover:bg-emerald-500 text-white active:scale-95'
               }`}
             >
-              {isSaved ? <Check className="w-4 h-4" /> : <Save className="w-4 h-4" />}
-              <span>{isSaved ? 'Tersimpan!' : 'Simpan Perubahan'}</span>
+              {isSaved ? <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> : <Save className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
+              <span className="hidden xs:inline">{isSaved ? 'Tersimpan!' : 'Simpan'}</span>
+              <span className="xs:hidden">{isSaved ? '✓' : 'Simpan'}</span>
             </button>
 
             <button
               onClick={onClose}
-              className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
+              className="p-1.5 sm:p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -171,19 +172,19 @@ export const PhysicalPeriodicalDataModal: React.FC<PhysicalPeriodicalDataModalPr
         </div>
 
         {/* Toolbar: Filter Rombel, Search & Mode Toggle */}
-        <div className="bg-slate-100 p-3.5 border-b border-slate-200 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 shrink-0">
-          <div className="flex flex-wrap items-center gap-2 flex-1">
+        <div className="bg-slate-100 p-2.5 sm:p-3.5 border-b border-slate-200 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2.5 shrink-0">
+          <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-2 flex-1">
             {/* Rombel Selector */}
-            <div className="flex items-center gap-1.5 bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 shadow-2xs">
-              <Filter className="w-3.5 h-3.5 text-slate-500" />
-              <span className="text-xs font-semibold text-slate-600">Rombel:</span>
+            <div className="flex items-center gap-1.5 bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 shadow-2xs w-full sm:w-auto">
+              <Filter className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+              <span className="text-xs font-semibold text-slate-600 shrink-0">Rombel:</span>
               <select
                 value={selectedRombel}
                 onChange={e => {
                   setSelectedRombel(e.target.value);
                   setCardIndex(0);
                 }}
-                className="text-xs font-bold text-slate-800 focus:outline-none bg-transparent"
+                className="text-xs font-bold text-slate-800 focus:outline-none bg-transparent w-full"
               >
                 <option value="semua">Semua Rombel ({editableStudents.length})</option>
                 {rombelList.map(r => {
@@ -198,7 +199,7 @@ export const PhysicalPeriodicalDataModal: React.FC<PhysicalPeriodicalDataModalPr
             </div>
 
             {/* Search Input */}
-            <div className="relative flex-1 min-w-[200px]">
+            <div className="relative flex-1 w-full min-w-0">
               <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
@@ -212,44 +213,44 @@ export const PhysicalPeriodicalDataModal: React.FC<PhysicalPeriodicalDataModalPr
             {/* Stat Pill */}
             <div className="hidden sm:flex items-center gap-2 bg-emerald-50 border border-emerald-200 text-emerald-900 px-3 py-1.5 rounded-lg text-xs font-semibold">
               <Scale className="w-3.5 h-3.5 text-emerald-600" />
-              <span>Terisi TB & BB: <strong>{filledTbBbCount}</strong> / {filteredStudents.length}</span>
+              <span>Terisi: <strong>{filledTbBbCount}</strong> / {filteredStudents.length}</span>
             </div>
           </div>
 
-          {/* View Mode Toggle Button (Table / Mode Entri Cepat per Kartu) */}
-          <div className="flex items-center gap-1 bg-slate-200 p-1 rounded-lg shrink-0">
+          {/* View Mode Toggle Button */}
+          <div className="grid grid-cols-2 sm:flex items-center gap-1 bg-slate-200 p-1 rounded-lg shrink-0 w-full sm:w-auto">
             <button
               type="button"
               onClick={() => setViewMode('table')}
-              className={`px-3 py-1 rounded-md text-xs font-bold transition-all cursor-pointer ${
+              className={`px-2.5 sm:px-3 py-1.5 sm:py-1 rounded-md text-xs font-bold transition-all cursor-pointer text-center ${
                 viewMode === 'table' ? 'bg-white text-emerald-700 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              Tabel Spreadsheet
+              📊 Tabel Spreadsheet
             </button>
             <button
               type="button"
               onClick={() => setViewMode('card')}
-              className={`px-3 py-1 rounded-md text-xs font-bold transition-all cursor-pointer ${
+              className={`px-2.5 sm:px-3 py-1.5 sm:py-1 rounded-md text-xs font-bold transition-all cursor-pointer text-center ${
                 viewMode === 'card' ? 'bg-white text-emerald-700 shadow-2xs' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              Mode Pengukuran Per Murid
+              📇 Mode Per Murid
             </button>
           </div>
         </div>
 
-        {/* Quick Batch Auto-Fill Tools (Collapsible / Banner) */}
-        <div className="bg-amber-50/70 border-b border-amber-200/80 px-4 py-2.5 text-xs text-amber-950 flex flex-wrap items-center justify-between gap-2 shrink-0">
-          <div className="flex items-center gap-1.5 font-bold">
-            <Sparkles className="w-4 h-4 text-amber-600" />
-            <span>Alat Pengisian Otomatis Data Kosong:</span>
+        {/* Quick Batch Auto-Fill Tools */}
+        <div className="bg-amber-50/80 border-b border-amber-200/80 px-3 sm:px-4 py-2 text-xs text-amber-950 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 shrink-0 overflow-x-auto">
+          <div className="flex items-center gap-1.5 font-bold shrink-0 text-[11px] sm:text-xs">
+            <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+            <span>Isi Otomatis Data Kosong:</span>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0 scrollbar-none">
             {/* Auto Fill Transport */}
-            <div className="flex items-center gap-1 bg-white border border-amber-300 rounded-lg px-2 py-1 shadow-2xs">
-              <Bike className="w-3.5 h-3.5 text-amber-700" />
+            <div className="flex items-center gap-1 bg-white border border-amber-300 rounded-lg px-2 py-1 shadow-2xs shrink-0">
+              <Bike className="w-3.5 h-3.5 text-amber-700 shrink-0" />
               <select
                 value={batchTransport}
                 onChange={e => setBatchTransport(e.target.value)}
@@ -265,16 +266,15 @@ export const PhysicalPeriodicalDataModal: React.FC<PhysicalPeriodicalDataModalPr
               <button
                 type="button"
                 onClick={applyBatchTransport}
-                className="text-[10px] font-bold bg-amber-600 hover:bg-amber-500 text-white px-2 py-0.5 rounded cursor-pointer"
-                title="Isi Transportasi ke Murid yang Kosong"
+                className="text-[10px] font-bold bg-amber-600 hover:bg-amber-500 text-white px-1.5 py-0.5 rounded cursor-pointer shrink-0"
               >
                 Isi Transport
               </button>
             </div>
 
             {/* Auto Fill Tempat Tinggal */}
-            <div className="flex items-center gap-1 bg-white border border-amber-300 rounded-lg px-2 py-1 shadow-2xs">
-              <Home className="w-3.5 h-3.5 text-amber-700" />
+            <div className="flex items-center gap-1 bg-white border border-amber-300 rounded-lg px-2 py-1 shadow-2xs shrink-0">
+              <Home className="w-3.5 h-3.5 text-amber-700 shrink-0" />
               <select
                 value={batchTinggal}
                 onChange={e => setBatchTinggal(e.target.value)}
@@ -288,28 +288,26 @@ export const PhysicalPeriodicalDataModal: React.FC<PhysicalPeriodicalDataModalPr
               <button
                 type="button"
                 onClick={applyBatchTinggal}
-                className="text-[10px] font-bold bg-amber-600 hover:bg-amber-500 text-white px-2 py-0.5 rounded cursor-pointer"
-                title="Isi Tempat Tinggal ke Murid yang Kosong"
+                className="text-[10px] font-bold bg-amber-600 hover:bg-amber-500 text-white px-1.5 py-0.5 rounded cursor-pointer shrink-0"
               >
                 Isi Tinggal
               </button>
             </div>
 
             {/* Auto Fill Jarak */}
-            <div className="flex items-center gap-1 bg-white border border-amber-300 rounded-lg px-2 py-1 shadow-2xs">
-              <span className="text-[11px] font-bold text-slate-700">Jarak:</span>
+            <div className="flex items-center gap-1 bg-white border border-amber-300 rounded-lg px-2 py-1 shadow-2xs shrink-0">
+              <span className="text-[11px] font-bold text-slate-700 shrink-0">Jarak:</span>
               <input
                 type="text"
                 value={batchJarak}
                 onChange={e => setBatchJarak(e.target.value)}
-                className="w-10 text-[11px] font-bold text-slate-800 border-b border-amber-400 text-center focus:outline-none"
+                className="w-8 text-[11px] font-bold text-slate-800 border-b border-amber-400 text-center focus:outline-none"
               />
-              <span className="text-[10px] text-slate-500">km</span>
+              <span className="text-[10px] text-slate-500 shrink-0">km</span>
               <button
                 type="button"
                 onClick={applyBatchJarak}
-                className="text-[10px] font-bold bg-amber-600 hover:bg-amber-500 text-white px-2 py-0.5 rounded cursor-pointer"
-                title="Isi Jarak Sekolah ke Murid yang Kosong"
+                className="text-[10px] font-bold bg-amber-600 hover:bg-amber-500 text-white px-1.5 py-0.5 rounded cursor-pointer shrink-0"
               >
                 Isi Jarak
               </button>
@@ -501,26 +499,27 @@ export const PhysicalPeriodicalDataModal: React.FC<PhysicalPeriodicalDataModalPr
           ) : (
             /* ================= MODE 2: CARD CHECKUP MODE ================= */
             currentCardStudent && (
-              <div className="max-w-2xl mx-auto space-y-4">
+              <div className="max-w-2xl mx-auto space-y-3 sm:space-y-4">
                 {/* Stepper / Carousel Header */}
-                <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                <div className="bg-white p-3 sm:p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between gap-2">
                   <button
                     type="button"
                     disabled={cardIndex === 0}
                     onClick={() => setCardIndex(prev => Math.max(0, prev - 1))}
-                    className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 disabled:opacity-40 text-slate-700 font-bold rounded-lg text-xs flex items-center gap-1 cursor-pointer transition-colors"
+                    className="px-2.5 sm:px-3 py-1.5 bg-slate-100 hover:bg-slate-200 disabled:opacity-30 text-slate-700 font-bold rounded-lg text-xs flex items-center gap-1 cursor-pointer transition-colors shrink-0"
                   >
-                    <ChevronLeft className="w-4 h-4" /> Murid Sebelumnya
+                    <ChevronLeft className="w-4 h-4" />
+                    <span className="hidden xs:inline">Sebelumnya</span>
                   </button>
 
-                  <div className="text-center">
-                    <span className="text-xs text-slate-500 font-semibold">
-                      Murid Ke-{cardIndex + 1} dari {filteredStudents.length}
+                  <div className="text-center min-w-0 flex-1 px-1">
+                    <span className="text-[10px] sm:text-xs text-slate-500 font-semibold block">
+                      Murid {cardIndex + 1} dari {filteredStudents.length}
                     </span>
-                    <h3 className="font-bold text-slate-900 text-base">
+                    <h3 className="font-bold text-slate-900 text-sm sm:text-base truncate">
                       {currentCardStudent.namaSiswa}
                     </h3>
-                    <p className="text-xs text-emerald-600 font-semibold">
+                    <p className="text-[11px] sm:text-xs text-emerald-600 font-semibold truncate">
                       Kelas {currentCardStudent.rombel} | NISN: {currentCardStudent.nisn || '-'}
                     </p>
                   </div>
@@ -529,52 +528,55 @@ export const PhysicalPeriodicalDataModal: React.FC<PhysicalPeriodicalDataModalPr
                     type="button"
                     disabled={cardIndex >= filteredStudents.length - 1}
                     onClick={() => setCardIndex(prev => Math.min(filteredStudents.length - 1, prev + 1))}
-                    className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white disabled:opacity-40 font-bold rounded-lg text-xs flex items-center gap-1 cursor-pointer transition-colors"
+                    className="px-2.5 sm:px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white disabled:opacity-30 font-bold rounded-lg text-xs flex items-center gap-1 cursor-pointer transition-colors shrink-0"
                   >
-                    Murid Selanjutnya <ChevronRight className="w-4 h-4" />
+                    <span className="hidden xs:inline">Berikutnya</span>
+                    <ChevronRight className="w-4 h-4" />
                   </button>
                 </div>
 
                 {/* Physical Measurement Card */}
-                <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-md space-y-5">
-                  <div className="border-b border-slate-100 pb-3 flex items-center justify-between">
+                <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-md space-y-4 sm:space-y-5">
+                  <div className="border-b border-slate-100 pb-2.5 flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <Scale className="w-5 h-5 text-emerald-600" />
-                      <h4 className="font-bold text-slate-900 text-sm">Pengukuran Antropometri & Fisik</h4>
+                      <Scale className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" />
+                      <h4 className="font-bold text-slate-900 text-xs sm:text-sm">Pengukuran Antropometri & Fisik</h4>
                     </div>
-                    <span className="text-xs text-slate-400 font-medium">Satuan cm & kg</span>
+                    <span className="text-[10px] sm:text-xs text-slate-400 font-medium">Satuan cm & kg</span>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 xs:grid-cols-3 gap-3 sm:gap-4">
                     {/* Tinggi Badan */}
-                    <div className="p-3 bg-emerald-50/60 border border-emerald-200 rounded-xl space-y-1">
+                    <div className="p-3 bg-emerald-50/70 border border-emerald-200 rounded-xl space-y-1">
                       <label className="text-xs font-bold text-emerald-900 block flex items-center gap-1">
                         <Ruler className="w-3.5 h-3.5 text-emerald-600" />
-                        Tinggi Badan (cm)
+                        Tinggi (cm)
                       </label>
                       <input
                         type="number"
+                        inputMode="decimal"
                         step="0.1"
                         value={currentCardStudent.tinggiBadan || ''}
                         onChange={e => handleFieldChange(currentCardStudent.id, 'tinggiBadan', e.target.value)}
-                        placeholder="Contoh: 120"
-                        className="w-full text-lg font-bold text-emerald-950 p-2 bg-white border border-emerald-300 rounded-lg text-center focus:outline-emerald-600"
+                        placeholder="120"
+                        className="w-full text-base sm:text-lg font-bold text-emerald-950 p-2 bg-white border border-emerald-300 rounded-lg text-center focus:outline-emerald-600 shadow-2xs"
                       />
                     </div>
 
                     {/* Berat Badan */}
-                    <div className="p-3 bg-emerald-50/60 border border-emerald-200 rounded-xl space-y-1">
+                    <div className="p-3 bg-emerald-50/70 border border-emerald-200 rounded-xl space-y-1">
                       <label className="text-xs font-bold text-emerald-900 block flex items-center gap-1">
                         <Scale className="w-3.5 h-3.5 text-emerald-600" />
-                        Berat Badan (kg)
+                        Berat (kg)
                       </label>
                       <input
                         type="number"
+                        inputMode="decimal"
                         step="0.1"
                         value={currentCardStudent.beratBadan || ''}
                         onChange={e => handleFieldChange(currentCardStudent.id, 'beratBadan', e.target.value)}
-                        placeholder="Contoh: 24.5"
-                        className="w-full text-lg font-bold text-emerald-950 p-2 bg-white border border-emerald-300 rounded-lg text-center focus:outline-emerald-600"
+                        placeholder="24.5"
+                        className="w-full text-base sm:text-lg font-bold text-emerald-950 p-2 bg-white border border-emerald-300 rounded-lg text-center focus:outline-emerald-600 shadow-2xs"
                       />
                     </div>
 
@@ -582,21 +584,22 @@ export const PhysicalPeriodicalDataModal: React.FC<PhysicalPeriodicalDataModalPr
                     <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
                       <label className="text-xs font-bold text-slate-800 block flex items-center gap-1">
                         <Activity className="w-3.5 h-3.5 text-slate-600" />
-                        Lingkar Kepala (cm)
+                        Lgkr Kepala (cm)
                       </label>
                       <input
                         type="number"
+                        inputMode="decimal"
                         step="0.1"
                         value={currentCardStudent.lingkarKepala || ''}
                         onChange={e => handleFieldChange(currentCardStudent.id, 'lingkarKepala', e.target.value)}
-                        placeholder="Contoh: 51"
-                        className="w-full text-lg font-bold text-slate-900 p-2 bg-white border border-slate-300 rounded-lg text-center focus:outline-emerald-600"
+                        placeholder="51"
+                        className="w-full text-base sm:text-lg font-bold text-slate-900 p-2 bg-white border border-slate-300 rounded-lg text-center focus:outline-emerald-600 shadow-2xs"
                       />
                     </div>
                   </div>
 
                   {/* Periodic & Transport Data */}
-                  <div className="border-t border-slate-100 pt-4 space-y-3">
+                  <div className="border-t border-slate-100 pt-3.5 space-y-3">
                     <h4 className="font-bold text-slate-900 text-xs">Data Periodik & Rumah Tangga</h4>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                       <div>
@@ -606,7 +609,7 @@ export const PhysicalPeriodicalDataModal: React.FC<PhysicalPeriodicalDataModalPr
                           value={currentCardStudent.jarakSekolahKM || ''}
                           onChange={e => handleFieldChange(currentCardStudent.id, 'jarakSekolahKM', e.target.value)}
                           placeholder="Contoh: 1 km"
-                          className="w-full p-2 border border-slate-300 rounded-lg font-semibold"
+                          className="w-full p-2.5 border border-slate-300 rounded-lg font-semibold text-slate-800 bg-white"
                         />
                       </div>
 
@@ -616,8 +619,8 @@ export const PhysicalPeriodicalDataModal: React.FC<PhysicalPeriodicalDataModalPr
                           type="text"
                           value={currentCardStudent.transportasi || ''}
                           onChange={e => handleFieldChange(currentCardStudent.id, 'transportasi', e.target.value)}
-                          placeholder="Contoh: Jalan kaki / Sepeda motor"
-                          className="w-full p-2 border border-slate-300 rounded-lg"
+                          placeholder="Contoh: Jalan kaki"
+                          className="w-full p-2.5 border border-slate-300 rounded-lg text-slate-800 bg-white"
                         />
                       </div>
 
@@ -628,7 +631,7 @@ export const PhysicalPeriodicalDataModal: React.FC<PhysicalPeriodicalDataModalPr
                           value={currentCardStudent.jenisTinggal || ''}
                           onChange={e => handleFieldChange(currentCardStudent.id, 'jenisTinggal', e.target.value)}
                           placeholder="Contoh: Bersama orang tua"
-                          className="w-full p-2 border border-slate-300 rounded-lg"
+                          className="w-full p-2.5 border border-slate-300 rounded-lg text-slate-800 bg-white"
                         />
                       </div>
 
@@ -637,20 +640,22 @@ export const PhysicalPeriodicalDataModal: React.FC<PhysicalPeriodicalDataModalPr
                           <label className="font-semibold text-slate-700 block mb-1">Jml Saudara</label>
                           <input
                             type="number"
+                            inputMode="numeric"
                             value={currentCardStudent.jmlSaudara || ''}
                             onChange={e => handleFieldChange(currentCardStudent.id, 'jmlSaudara', e.target.value)}
                             placeholder="0"
-                            className="w-full p-2 border border-slate-300 rounded-lg text-center font-bold"
+                            className="w-full p-2.5 border border-slate-300 rounded-lg text-center font-bold text-slate-800 bg-white"
                           />
                         </div>
                         <div>
                           <label className="font-semibold text-slate-700 block mb-1">Anak Ke-</label>
                           <input
                             type="number"
+                            inputMode="numeric"
                             value={currentCardStudent.anakKe || ''}
                             onChange={e => handleFieldChange(currentCardStudent.id, 'anakKe', e.target.value)}
                             placeholder="1"
-                            className="w-full p-2 border border-slate-300 rounded-lg text-center font-bold"
+                            className="w-full p-2.5 border border-slate-300 rounded-lg text-center font-bold text-slate-800 bg-white"
                           />
                         </div>
                       </div>
@@ -663,23 +668,23 @@ export const PhysicalPeriodicalDataModal: React.FC<PhysicalPeriodicalDataModalPr
         </div>
 
         {/* Footer Actions */}
-        <div className="bg-slate-100 px-5 py-3 border-t border-slate-200 flex items-center justify-between shrink-0">
-          <div className="text-xs text-slate-500 font-medium">
-            Total Murid Ditampilkan: <strong>{filteredStudents.length} Murid</strong>
+        <div className="bg-slate-100 px-3 sm:px-5 py-2.5 sm:py-3 border-t border-slate-200 flex flex-col xs:flex-row items-center justify-between gap-2 shrink-0">
+          <div className="text-[11px] sm:text-xs text-slate-500 font-medium text-center xs:text-left">
+            Menampilkan: <strong>{filteredStudents.length} Murid</strong>
           </div>
 
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 w-full xs:w-auto justify-end">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 border border-slate-300 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition-colors cursor-pointer"
+              className="px-3.5 py-2 border border-slate-300 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition-colors cursor-pointer"
             >
               Tutup
             </button>
             <button
               type="button"
               onClick={handleSaveAll}
-              className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-md transition-all active:scale-95 cursor-pointer flex items-center gap-1.5"
+              className="px-4 sm:px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-md transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-1.5 flex-1 xs:flex-initial"
             >
               <Save className="w-4 h-4" />
               <span>Simpan Semua Perubahan</span>

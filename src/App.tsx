@@ -750,6 +750,7 @@ export default function App() {
       {isDocsOpen && (
         <AdminDocumentsModal
           students={students}
+          teachers={teachers}
           schoolInfo={schoolInfo}
           initialDocType={docsTypeTarget}
           initialStudent={docsStudentTarget}

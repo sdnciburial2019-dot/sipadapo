@@ -22,11 +22,13 @@ import {
   Plus,
   Trash2,
   BookOpen,
-  Mail
+  Mail,
+  Send,
+  Briefcase
 } from 'lucide-react';
-import { Student, SchoolInfo } from '../types';
+import { Student, Teacher, SchoolInfo } from '../types';
 import { ROMBEL_LIST } from '../data/dapodikOptions';
-import { formatNisn, isStudentMutasi, getStoredRombelList } from '../utils/storage';
+import { formatNisn, isStudentMutasi, getStoredRombelList, getStoredTeachers } from '../utils/storage';
 import { INDONESIAN_MONTHS, getTodayIndonesianDate, generateLetterNumber } from '../utils/letterUtils';
 
 export type DocType = 
@@ -37,27 +39,36 @@ export type DocType =
   | 'pip' 
   | 'undangan_rapat'
   | 'berita_acara_rapat'
+  | 'notula_rapat'
   | 'rapat_ortu'
-  | 'daftar_nilai';
+  | 'daftar_nilai'
+  | 'sk_kepala_sekolah'
+  | 'surat_tugas_guru'
+  | 'sppd_guru';
 
 interface AdminDocumentsModalProps {
   students: Student[];
+  teachers?: Teacher[];
   schoolInfo: SchoolInfo;
   initialDocType?: DocType;
   initialStudent?: Student | null;
+  initialTeacher?: Teacher | null;
   onClose: () => void;
   onMutasiKeluar?: (student: Student) => void;
 }
 
 export const AdminDocumentsModal: React.FC<AdminDocumentsModalProps> = ({
   students,
+  teachers,
   schoolInfo,
   initialDocType = 'absensi',
   initialStudent = null,
+  initialTeacher = null,
   onClose,
   onMutasiKeluar,
 }) => {
   const [activeTab, setActiveTab] = useState<DocType>(initialDocType);
+  const [mobileView, setMobileView] = useState<'form' | 'preview'>('form');
 
   // Selection States
   const [selectedStudentId, setSelectedStudentId] = useState<string>(
@@ -251,6 +262,61 @@ export const AdminDocumentsModal: React.FC<AdminDocumentsModalProps> = ({
     }
   };
 
+  // 9. Notula Rapat Specific
+  const [jenisRapatNotula, setJenisRapatNotula] = useState<'ortu' | 'guru' | 'komite' | 'kustom'>('ortu');
+  const [judulNotula, setJudulNotula] = useState<string>(
+    'NOTULA RAPAT SOSIALISASI PROGRAM KERJA SEKOLAH & MUSYAWARAH ORANG TUA'
+  );
+  const [hariTanggalNotula, setHariTanggalNotula] = useState<string>('Sabtu, 25 Juli 2026');
+  const [waktuNotula, setWaktuNotula] = useState<string>('08:30 WIB s.d. 11:30 WIB');
+  const [tempatNotula, setTempatNotula] = useState<string>('Ruang Aula / Kelas SD Negeri Ciburial');
+  const [pimpinanNotula, setPimpinanNotula] = useState<string>('Della Juliana Rismalinda, S.Pd');
+  const [jabatanPimpinanNotula, setJabatanPimpinanNotula] = useState<string>('Kepala Sekolah');
+  const [notulisNotula, setNotulisNotula] = useState<string>('Siti Rahmawati, S.Pd');
+  const [jabatanNotulisNotula, setJabatanNotulisNotula] = useState<string>('Notulis / Sekretaris');
+  const [jumlahHadirNotula, setJumlahHadirNotula] = useState<string>('120 Orang');
+  const [agendaNotula, setAgendaNotula] = useState<string>(
+    '1. Pembukaan & Sambutan Kepala Sekolah\n2. Pemaparan Program Kerja Sekolah & Kurikulum TA 2026/2027\n3. Musyawarah Komite & Tata Tertib Siswa\n4. Sesi Tanya Jawab & Penyampaian Aspirasi Orang Tua\n5. Penutup & Doa'
+  );
+  const [jalannyaRapatNotula, setJalannyaRapatNotula] = useState<string>(
+    '1. Rapat dibuka tepat pukul 08.30 WIB oleh Pembawa Acara dan diawali dengan menyanyikan lagu Indonesia Raya.\n2. Kepala Sekolah memaparkan visi, misi, serta target mutu program kurikulum TA 2026/2027.\n3. Perwakilan Orang Tua Murid (Bpk. M. Yusuf) menyampaikan pertanyaan terkait jadwal ekstrakurikuler Pramuka dan Komputer.\n4. Kepala Sekolah memberikan penjelasan bahwa ekskul Pramuka dilaksanakan setiap hari Jumat sore dan Komputer hari Sabtu tanpa mengganggu KBM utama.\n5. Komite Sekolah menyampaikan persetujuan atas program bakti lingkungan sekolah dan penataan sarana perpustakaan.'
+  );
+  const [kesimpulanNotula, setKesimpulanNotula] = useState<string>(
+    '1. Seluruh peserta rapat menyepakati dan mendukung penuh Program Kerja Sekolah TA 2026/2027.\n2. Kegiatan Ekstrakurikuler Wajib Pramuka & Pilihan Komputer disetujui.\n3. Disepakati pembentukan Paguyuban Orang Tua Murid di setiap rombel untuk mempermudah komunikasi.'
+  );
+
+  const handlePresetNotulaChange = (type: 'ortu' | 'guru' | 'komite' | 'kustom') => {
+    setJenisRapatNotula(type);
+    if (type === 'ortu') {
+      setJudulNotula('NOTULA RAPAT SOSIALISASI PROGRAM KERJA SEKOLAH & MUSYAWARAH ORANG TUA');
+      setAgendaNotula('1. Pembukaan & Sambutan Kepala Sekolah\n2. Pemaparan Program Kerja Sekolah & Kurikulum TA 2026/2027\n3. Musyawarah Komite & Tata Tertib Siswa\n4. Sesi Tanya Jawab & Penyampaian Aspirasi Orang Tua\n5. Penutup & Doa');
+      setJalannyaRapatNotula('1. Rapat dibuka tepat pukul 08.30 WIB oleh Pembawa Acara dan diawali dengan menyanyikan lagu Indonesia Raya.\n2. Kepala Sekolah memaparkan visi, misi, serta target mutu program kurikulum TA 2026/2027.\n3. Perwakilan Orang Tua Murid menyampaikan pertanyaan terkait jadwal ekstrakurikuler Pramuka dan Komputer.\n4. Kepala Sekolah memberikan penjelasan bahwa ekskul Pramuka dilaksanakan hari Jumat dan Komputer hari Sabtu.\n5. Komite Sekolah menyampaikan persetujuan atas program bakti lingkungan sekolah.');
+      setKesimpulanNotula('1. Seluruh peserta rapat menyepakati dan mendukung penuh Program Kerja Sekolah TA 2026/2027.\n2. Kegiatan Ekstrakurikuler Wajib Pramuka & Pilihan Komputer disetujui.\n3. Disepakati pembentukan Paguyuban Orang Tua Murid di setiap rombel.');
+      setPimpinanNotula(schoolInfo.kepalaSekolah || 'Della Juliana Rismalinda, S.Pd');
+      setJabatanPimpinanNotula('Kepala Sekolah');
+      setNotulisNotula('Siti Rahmawati, S.Pd');
+      setJabatanNotulisNotula('Notulis / Sekretaris');
+    } else if (type === 'guru') {
+      setJudulNotula('NOTULA RAPAT DEWAN GURU & EVALUASI PEMBELAJARAN');
+      setAgendaNotula('1. Pengarahan Kepala Sekolah\n2. Pembagian Tugas Mengajar & Wali Kelas TA 2026/2027\n3. Pembahasan Perangkat Ajar & Modul Kurikulum\n4. Penataan Kedisiplinan & Administrasi Guru');
+      setJalannyaRapatNotula('1. Kepala Sekolah memberikan pengarahan tentang kesiapan KBM dan kedisiplinan guru.\n2. Kurikulum disepakati menerapkan Kurikulum Merdeka secara optimal.\n3. Pembagian tugas mengajar dibahas dan disetujui oleh seluruh dewan guru.\n4. Pengumpulan Modul Ajar dan administrasi KBM disepakati paling lambat H-3 sebelum ajaran baru.');
+      setKesimpulanNotula('1. SK Pembagian Tugas Mengajar resmi disahkan.\n2. Administrasi kelas dan modul ajar wajib diselesaikan Tepat Waktu.\n3. Piket harian dan pembina upacara dijadwalkan secara giliran.');
+      setPimpinanNotula(schoolInfo.kepalaSekolah || 'Della Juliana Rismalinda, S.Pd');
+      setJabatanPimpinanNotula('Kepala Sekolah');
+      setNotulisNotula('Guru K3S / Sekretaris Sekolah');
+      setJabatanNotulisNotula('Notulis Rapat');
+    } else if (type === 'komite') {
+      setJudulNotula('NOTULA RAPAT MUSYAWARAH KOMITE SEKOLAH & PENGEMBANGAN SARPRAS');
+      setAgendaNotula('1. Sambutan Ketua Komite & Kepala Sekolah\n2. Laporan Realisasi Program & Evaluasi Sarpras Sekolah\n3. Pembahasan RAPBS & Pemeliharaan Fasilitas\n4. Tanya Jawab & Penutup');
+      setJalannyaRapatNotula('1. Ketua Komite menyampaikan apresiasi atas sinergi antara pihak sekolah dan orang tua murid.\n2. Dilakukan pembahasan kebutuhan renovasi sanitasi dan pojok baca kelas.\n3. Pengurus Komite menyepakati gerakan gotong royong penataan taman dan lingkungan sekolah.');
+      setKesimpulanNotula('1. RAPBS TA 2026/2027 disetujui oleh Komite Sekolah.\n2. Program pemeliharaan perpustakaan dan lingkungan sekolah disepakati bersama.');
+      setPimpinanNotula('H. Ahmad Hidayat, S.Pd.I');
+      setJabatanPimpinanNotula('Ketua Komite Sekolah');
+      setNotulisNotula('Drs. M. Ridwan');
+      setJabatanNotulisNotula('Sekretaris Komite');
+    }
+  };
+
   // 7. Daftar Nilai Specific
   const [mataPelajaran, setMataPelajaran] = useState<string>('Ilmu Pengetahuan Alam dan Sosial (IPAS)');
   const [judulPenilaian, setJudulPenilaian] = useState<string>('Penilaian Akhir Semester (PAS) / Sumatif');
@@ -304,6 +370,189 @@ export const AdminDocumentsModal: React.FC<AdminDocumentsModalProps> = ({
       }
     }
   }, [selectedStudentId, currentStudent]);
+
+  // --- DATA GURU (PTK) SELECTION & LETTER STATES ---
+  const allTeachers = useMemo(() => {
+    return (teachers && teachers.length > 0) ? teachers : getStoredTeachers();
+  }, [teachers]);
+
+  const [selectedTeacherId, setSelectedTeacherId] = useState<string>(
+    initialTeacher ? initialTeacher.id : (allTeachers[0]?.id || '')
+  );
+
+  const currentTeacher = useMemo(() => {
+    return allTeachers.find(t => t.id === selectedTeacherId) || allTeachers[0] || null;
+  }, [allTeachers, selectedTeacherId]);
+
+  // 10. SK Kepala Sekolah States
+  const [jenisSk, setJenisSk] = useState<'tugas_mengajar' | 'pengangkatan' | 'tugas_tambahan' | 'kustom'>('tugas_mengajar');
+  const [judulSk, setJudulSk] = useState<string>(
+    'SURAT KEPUTUSAN KEPALA SEKOLAH TENTANG PEMBAGIAN TUGAS MENGAJAR DAN DUKUNGAN PEMBELAJARAN TAHUN AJARAN 2026/2027'
+  );
+  const [nomorSk, setNomorSk] = useState<string>('800/042/SD-02/SK/2026');
+  const [namaGuruSk, setNamaGuruSk] = useState<string>('');
+  const [nipGuruSk, setNipGuruSk] = useState<string>('');
+  const [nuptkGuruSk, setNuptkGuruSk] = useState<string>('');
+  const [pangkatGolSk, setPangkatGolSk] = useState<string>('');
+  const [jabatanGuruSk, setJabatanGuruSk] = useState<string>('');
+  const [menimbangSk, setMenimbangSk] = useState<string>(
+    'a. Bahwa dalam rangka kelancaran proses belajar mengajar di SD Negeri Ciburial, perlu ditetapkan Pembagian Tugas Mengajar dan Bimbingan bagi Guru/PTK TA 2026/2027.\nb. Bahwa nama yang tercantum dalam Keputusan ini dipandang memenuhi syarat dan mampu untuk diserahi tugas mengajar dan tugas tambahan tersebut.'
+  );
+  const [mengingatSk, setMengingatSk] = useState<string>(
+    '1. Undang-Undang Nomor 20 Tahun 2003 tentang Sistem Pendidikan Nasional.\n2. Undang-Undang Nomor 14 Tahun 2005 tentang Guru dan Dosen.\n3. Peraturan Pemerintah Nomor 19 Tahun 2017 tentang Guru.\n4. Permendikbud Nomor 15 Tahun 2018 tentang Pemenuhan Beban Kerja Guru, Kepala Sekolah, dan Pengawas Sekolah.'
+  );
+  const [memutuskanKesatu, setMemutuskanKesatu] = useState<string>('');
+  const [memutuskanKedua, setMemutuskanKedua] = useState<string>(
+    'Masing-masing Guru wajib melaksanakan tugas dengan penuh tanggung jawab serta melaporkan hasil pembelajaran secara berkala kepada Kepala Sekolah.'
+  );
+  const [memutuskanKetiga, setMemutuskanKetiga] = useState<string>(
+    'Keputusan ini mulai berlaku sejak tanggal ditetapkan, dan apabila terdapat kekeliruan di kemudian hari akan diadakan perbaikan sebagaimana mestinya.'
+  );
+  const [tembusanSk, setTembusanSk] = useState<string>(
+    '1. Kepala Dinas Pendidikan Kab. Bandung Barat\n2. Pengawas Pembina Sekolah Dasar\n3. Yang bersangkutan untuk dilaksanakan\n4. Arsip Sekolah'
+  );
+
+  // 11. Surat Tugas Guru States
+  const [jenisSuratTugas, setJenisSuratTugas] = useState<'bimtek' | 'kkg' | 'pendamping' | 'kustom'>('bimtek');
+  const [nomorSuratTugas, setNomorSuratTugas] = useState<string>('090/085/SD-02/ST/2026');
+  const [dasarSuratTugas, setDasarSuratTugas] = useState<string>(
+    'Surat Undangan Dinas Pendidikan Kabupaten Bandung Barat Nomor: 421/1082/Disdik perihal Pelatihan Peningkatan Mutu Tenaga Pendidik TA 2026/2027.'
+  );
+  const [namaGuruTugas, setNamaGuruTugas] = useState<string>('');
+  const [nipGuruTugas, setNipGuruTugas] = useState<string>('');
+  const [nuptkGuruTugas, setNuptkGuruTugas] = useState<string>('');
+  const [pangkatGolTugas, setPangkatGolTugas] = useState<string>('');
+  const [jabatanGuruTugas, setJabatanGuruTugas] = useState<string>('');
+  const [maksudTugas, setMaksudTugas] = useState<string>(
+    'Mengikuti Bimbingan Teknis (Bimtek) Implementasi Kurikulum Merdeka, Penyusunan Perangkat Ajar, dan Peningkatan Kompetensi Digital Guru Sekolah Dasar.'
+  );
+  const [hariTanggalTugas, setHariTanggalTugas] = useState<string>('Kamis - Jumat, 6 - 7 Agustus 2026');
+  const [waktuTugas, setWaktuTugas] = useState<string>('08:00 WIB s.d. 16:00 WIB');
+  const [tempatTugas, setTempatTugas] = useState<string>('Aula Korwil Bidang Pendidikan / Hotel Grand Asrilia Bandung');
+  const [penutupTugas, setPenutupTugas] = useState<string>(
+    'Demikian Surat Tugas ini dibuat untuk dilaksanakan dengan penuh rasa tanggung jawab, dan setelah selesai melaksanakan tugas agar melaporkan hasilnya kepada Kepala Sekolah.'
+  );
+
+  // 12. SPPD Guru States
+  const [jenisSppd, setJenisSppd] = useState<'dinas_luar' | 'pelatihan' | 'kkg_korwil' | 'kustom'>('dinas_luar');
+  const [nomorSppd, setNomorSppd] = useState<string>('094/086/SD-02/SPPD/2026');
+  const [lembarKeSppd, setLembarKeSppd] = useState<string>('1 (Satu)');
+  const [pejabatPerintah, setPejabatPerintah] = useState<string>(`Kepala ${schoolInfo.name}`);
+  const [namaGuruSppd, setNamaGuruSppd] = useState<string>('');
+  const [nipGuruSppd, setNipGuruSppd] = useState<string>('');
+  const [nuptkGuruSppd, setNuptkGuruSppd] = useState<string>('');
+  const [pangkatGolSppd, setPangkatGolSppd] = useState<string>('');
+  const [jabatanGuruSppd, setJabatanGuruSppd] = useState<string>('');
+  const [tingkatBiayaSppd, setTingkatBiayaSppd] = useState<string>('Tingkat B / Perjalanan Dinas Biasa');
+  const [maksudSppd, setMaksudSppd] = useState<string>(
+    'Melaksanakan Perjalanan Dinas dalam rangka Rapat Koordinasi Kedinasan & Penatausahaan Administrasi Manajemen Sekolah.'
+  );
+  const [alatAngkutSppd, setAlatAngkutSppd] = useState<string>('Kendaraan Umum / Kendaraan Pribadi');
+  const [tempatBerangkatSppd, setTempatBerangkatSppd] = useState<string>(schoolInfo.name);
+  const [tempatTujuanSppd, setTempatTujuanSppd] = useState<string>('Kantor Dinas Pendidikan Kabupaten Bandung Barat');
+  const [lamaSppd, setLamaSppd] = useState<string>('2 (Dua) Hari');
+  const [tanggalBerangkatSppd, setTanggalBerangkatSppd] = useState<string>('6 Agustus 2026');
+  const [tanggalKembaliSppd, setTanggalKembaliSppd] = useState<string>('7 Agustus 2026');
+  const [pembebananAnggaranSppd, setPembebananAnggaranSppd] = useState<string>(`Dana BOS ${schoolInfo.name} TA 2026`);
+  const [pengikutSppd, setPengikutSppd] = useState<string>('1. Siti Rahmawati, S.Pd (NIP. 19910214 202001 2 008)');
+  const [keteranganSppd, setKeteranganSppd] = useState<string>('Surat Perintah Perjalanan Dinas ini dilaksanakan sesuai ketentuan yang berlaku.');
+
+  // Helper to sync fields when selecting a teacher
+  const handleSelectTeacher = (id: string) => {
+    setSelectedTeacherId(id);
+    if (id === 'custom') return;
+    const t = allTeachers.find(item => item.id === id);
+    if (t) {
+      const nama = t.nama || 'M. Ramdani, S.Pd';
+      const nip = t.nip || '-';
+      const nuptk = t.nuptk || '-';
+      const pangkat = t.pangkatGolongan || 'Penata Muda / III/a';
+      const jabatan = `${t.jenisPtk || 'Guru Kelas'}${t.tugasTambahan ? ' / ' + t.tugasTambahan : ''}`;
+
+      setNamaGuruSk(nama);
+      setNipGuruSk(nip);
+      setNuptkGuruSk(nuptk);
+      setPangkatGolSk(pangkat);
+      setJabatanGuruSk(jabatan);
+      setMemutuskanKesatu(`Menugaskan Saudara/i ${nama}, NIP: ${nip}, Pangkat/Gol: ${pangkat}, Jabatan: ${jabatan} sebagai Pelaksana Tugas Mengajar & Pembelajaran di ${schoolInfo.name}.`);
+
+      setNamaGuruTugas(nama);
+      setNipGuruTugas(nip);
+      setNuptkGuruTugas(nuptk);
+      setPangkatGolTugas(pangkat);
+      setJabatanGuruTugas(jabatan);
+
+      setNamaGuruSppd(nama);
+      setNipGuruSppd(nip);
+      setNuptkGuruSppd(nuptk);
+      setPangkatGolSppd(pangkat);
+      setJabatanGuruSppd(jabatan);
+    }
+  };
+
+  // Sync initial teacher on mount
+  useEffect(() => {
+    if (initialTeacher) {
+      handleSelectTeacher(initialTeacher.id);
+    } else if (allTeachers.length > 0) {
+      handleSelectTeacher(allTeachers[0].id);
+    }
+  }, [initialTeacher]);
+
+  const handlePresetSkChange = (type: 'tugas_mengajar' | 'pengangkatan' | 'tugas_tambahan' | 'kustom') => {
+    setJenisSk(type);
+    const nama = namaGuruSk || 'Guru / PTK';
+    const nip = nipGuruSk || '-';
+    const jabatan = jabatanGuruSk || 'Guru Kelas';
+
+    if (type === 'tugas_mengajar') {
+      setJudulSk('SURAT KEPUTUSAN KEPALA SEKOLAH TENTANG PEMBAGIAN TUGAS MENGAJAR DAN DUKUNGAN PEMBELAJARAN TAHUN AJARAN 2026/2027');
+      setMemutuskanKesatu(`Menugaskan Saudara/i ${nama} (NIP: ${nip}) untuk melaksanakan Tugas Mengajar dan Pembelajaran sebagai ${jabatan} di ${schoolInfo.name}.`);
+    } else if (type === 'pengangkatan') {
+      setJudulSk('SURAT KEPUTUSAN KEPALA SEKOLAH TENTANG PENETAPAN DAN PENUGASAN GURU / TENAGA KEPENDIDIKAN DENGAN PERJANJIAN KERJA');
+      setMemutuskanKesatu(`Mengangkat dan menugaskan Saudara/i ${nama} sebagai ${jabatan} di ${schoolInfo.name} TA 2026/2027.`);
+    } else if (type === 'tugas_tambahan') {
+      setJudulSk('SURAT KEPUTUSAN KEPALA SEKOLAH TENTANG PENETAPAN TUGAS TAMBAHAN (PEMBINA EKSTRAKURIKULER / OPERATOR / BENDAHARA)');
+      setMemutuskanKesatu(`Menetapkan Saudara/i ${nama} untuk mengemban Tugas Tambahan Penugasan ${jabatan} di ${schoolInfo.name}.`);
+    }
+  };
+
+  const handlePresetSuratTugasChange = (type: 'bimtek' | 'kkg' | 'pendamping' | 'kustom') => {
+    setJenisSuratTugas(type);
+    if (type === 'bimtek') {
+      setMaksudTugas('Mengikuti Bimbingan Teknis (Bimtek) Implementasi Kurikulum Merdeka, Penyusunan Perangkat Ajar, dan Peningkatan Kompetensi Digital Guru.');
+      setTempatTugas('Aula Korwil Bidang Pendidikan / Hotel Grand Asrilia Bandung');
+      setWaktuTugas('08:00 WIB s.d. 16:00 WIB');
+    } else if (type === 'kkg') {
+      setMaksudTugas('Mengikuti Kegiatan Musyawarah / Kelompok Kerja Guru (KKG) SD Kecamatan perihal Penyusunan Soal Asesmen dan Modul Pembelajaran.');
+      setTempatTugas('SD Negeri 1 Lembang / Gedung Pusat Belajar Guru');
+      setWaktuTugas('08:30 WIB s.d. 13:00 WIB');
+    } else if (type === 'pendamping') {
+      setMaksudTugas('Menjadi Guru Pendamping / Pembina Kontingen Siswa dalam Kegiatan Lomba OSN, O2SN, FLS2N, dan Lomba Keagamaan Tingkat Kecamatan / Kabupaten.');
+      setTempatTugas('Kompleks Lapangan & Gelanggang Olahraga Kecamatan');
+      setWaktuTugas('07:30 WIB s.d. Selesai');
+    }
+  };
+
+  const handlePresetSppdChange = (type: 'dinas_luar' | 'pelatihan' | 'kkg_korwil' | 'kustom') => {
+    setJenisSppd(type);
+    if (type === 'dinas_luar') {
+      setMaksudSppd('Melaksanakan Perjalanan Dinas dalam rangka Rapat Koordinasi Kedinasan & Penatausahaan Administrasi Manajemen Sekolah.');
+      setTempatBerangkatSppd(schoolInfo.name);
+      setTempatTujuanSppd('Kantor Dinas Pendidikan Kabupaten Bandung Barat');
+      setLamaSppd('2 (Dua) Hari');
+    } else if (type === 'pelatihan') {
+      setMaksudSppd('Mengikuti Workshop / Bimbingan Teknis Peningkatan Kapasitas SDM Pendidik dan Tenaga Kependidikan.');
+      setTempatBerangkatSppd(schoolInfo.name);
+      setTempatTujuanSppd('Gedung Diklat LPMP / BGP Provinsi Jawa Barat');
+      setLamaSppd('3 (Tiga) Hari');
+    } else if (type === 'kkg_korwil') {
+      setMaksudSppd('Mengikuti Rapat Kerja Pembinaan Kurikulum dan Musyawarah KKG Kecamatan.');
+      setTempatBerangkatSppd(schoolInfo.name);
+      setTempatTujuanSppd('Kantor Korwil Bidang Pendidikan Kecamatan');
+      setLamaSppd('1 (Satu) Hari');
+    }
+  };
 
   // Filtered Students by Selected Rombel
   const rombelStudents = useMemo(() => {
@@ -392,121 +641,223 @@ export const AdminDocumentsModal: React.FC<AdminDocumentsModalProps> = ({
           </div>
         </div>
 
-        {/* Feature Tabs Bar */}
-        <div className="bg-slate-800 text-slate-300 p-2 flex items-center gap-1 overflow-x-auto shrink-0 border-b border-slate-700 no-print text-xs font-medium">
-          <button
-            onClick={() => setActiveTab('absensi')}
-            className={`px-3 py-2 rounded-lg flex items-center gap-2 shrink-0 transition-all cursor-pointer ${
-              activeTab === 'absensi'
-                ? 'bg-emerald-500 text-slate-950 font-bold shadow-sm'
-                : 'hover:bg-slate-700 text-slate-300'
-            }`}
-          >
-            <CheckSquare className="w-4 h-4" />
-            <span>Daftar Absensi Murid</span>
-          </button>
+        {/* Mobile-Friendly Select Dropdown for Document Type */}
+        <div className="bg-slate-800 text-slate-200 p-2.5 sm:px-4 flex flex-col gap-2 shrink-0 border-b border-slate-700 no-print text-xs">
+          <div className="flex items-center justify-between gap-2 md:hidden">
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Pilih Jenis Surat:</span>
+            <select
+              value={activeTab}
+              onChange={e => setActiveTab(e.target.value as DocType)}
+              className="bg-slate-900 text-emerald-400 font-bold px-3 py-1.5 rounded-lg border border-slate-700 text-xs focus:outline-none focus:border-emerald-500 w-full max-w-[240px] truncate"
+            >
+              <option value="absensi">📋 Daftar Absensi Murid</option>
+              <option value="aktif">📄 Surat Murid Aktif</option>
+              <option value="mutasi_masuk">🔄 Mutasi Masuk</option>
+              <option value="mutasi_keluar">📤 Mutasi Keluar</option>
+              <option value="pip">🏆 Surat Keterangan PIP</option>
+              <option value="undangan_rapat">✉️ Surat Undangan Rapat</option>
+              <option value="berita_acara_rapat">📜 Berita Acara Rapat</option>
+              <option value="notula_rapat">📝 Notula Rapat</option>
+              <option value="rapat_ortu">👥 Daftar Hadir Rapat Ortu</option>
+              <option value="daftar_nilai">📊 Daftar Nilai Siswa</option>
+              <option value="sk_kepala_sekolah">🎖️ SK Kepala Sekolah (PTK)</option>
+              <option value="surat_tugas_guru">💼 Surat Tugas Guru</option>
+              <option value="sppd_guru">🚀 SPPD Guru / PTK</option>
+            </select>
+          </div>
 
-          <button
-            onClick={() => setActiveTab('aktif')}
-            className={`px-3 py-2 rounded-lg flex items-center gap-2 shrink-0 transition-all cursor-pointer ${
-              activeTab === 'aktif'
-                ? 'bg-emerald-500 text-slate-950 font-bold shadow-sm'
-                : 'hover:bg-slate-700 text-slate-300'
-            }`}
-          >
-            <UserCheck className="w-4 h-4" />
-            <span>Surat Murid Aktif</span>
-          </button>
+          {/* Desktop / Tablet Scrollable Tabs Bar */}
+          <div className="hidden md:flex items-center gap-1 overflow-x-auto text-xs font-medium py-0.5">
+            <button
+              onClick={() => setActiveTab('absensi')}
+              className={`px-3 py-2 rounded-lg flex items-center gap-2 shrink-0 transition-all cursor-pointer ${
+                activeTab === 'absensi'
+                  ? 'bg-emerald-500 text-slate-950 font-bold shadow-sm'
+                  : 'hover:bg-slate-700 text-slate-300'
+              }`}
+            >
+              <CheckSquare className="w-4 h-4" />
+              <span>Daftar Absensi Murid</span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab('mutasi_masuk')}
-            className={`px-3 py-2 rounded-lg flex items-center gap-2 shrink-0 transition-all cursor-pointer ${
-              activeTab === 'mutasi_masuk'
-                ? 'bg-emerald-500 text-slate-950 font-bold shadow-sm'
-                : 'hover:bg-slate-700 text-slate-300'
-            }`}
-          >
-            <UserPlus className="w-4 h-4" />
-            <span>Mutasi Masuk</span>
-          </button>
+            <button
+              onClick={() => setActiveTab('aktif')}
+              className={`px-3 py-2 rounded-lg flex items-center gap-2 shrink-0 transition-all cursor-pointer ${
+                activeTab === 'aktif'
+                  ? 'bg-emerald-500 text-slate-950 font-bold shadow-sm'
+                  : 'hover:bg-slate-700 text-slate-300'
+              }`}
+            >
+              <UserCheck className="w-4 h-4" />
+              <span>Surat Murid Aktif</span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab('mutasi_keluar')}
-            className={`px-3 py-2 rounded-lg flex items-center gap-2 shrink-0 transition-all cursor-pointer ${
-              activeTab === 'mutasi_keluar'
-                ? 'bg-emerald-500 text-slate-950 font-bold shadow-sm'
-                : 'hover:bg-slate-700 text-slate-300'
-            }`}
-          >
-            <UserMinus className="w-4 h-4" />
-            <span>Mutasi Keluar</span>
-          </button>
+            <button
+              onClick={() => setActiveTab('mutasi_masuk')}
+              className={`px-3 py-2 rounded-lg flex items-center gap-2 shrink-0 transition-all cursor-pointer ${
+                activeTab === 'mutasi_masuk'
+                  ? 'bg-emerald-500 text-slate-950 font-bold shadow-sm'
+                  : 'hover:bg-slate-700 text-slate-300'
+              }`}
+            >
+              <UserPlus className="w-4 h-4" />
+              <span>Mutasi Masuk</span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab('pip')}
-            className={`px-3 py-2 rounded-lg flex items-center gap-2 shrink-0 transition-all cursor-pointer ${
-              activeTab === 'pip'
-                ? 'bg-emerald-500 text-slate-950 font-bold shadow-sm'
-                : 'hover:bg-slate-700 text-slate-300'
-            }`}
-          >
-            <Award className="w-4 h-4" />
-            <span>Surat Keterangan PIP</span>
-          </button>
+            <button
+              onClick={() => setActiveTab('mutasi_keluar')}
+              className={`px-3 py-2 rounded-lg flex items-center gap-2 shrink-0 transition-all cursor-pointer ${
+                activeTab === 'mutasi_keluar'
+                  ? 'bg-emerald-500 text-slate-950 font-bold shadow-sm'
+                  : 'hover:bg-slate-700 text-slate-300'
+              }`}
+            >
+              <UserMinus className="w-4 h-4" />
+              <span>Mutasi Keluar</span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab('undangan_rapat')}
-            className={`px-3 py-2 rounded-lg flex items-center gap-2 shrink-0 transition-all cursor-pointer ${
-              activeTab === 'undangan_rapat'
-                ? 'bg-emerald-500 text-slate-950 font-bold shadow-sm'
-                : 'hover:bg-slate-700 text-slate-300'
-            }`}
-          >
-            <Mail className="w-4 h-4" />
-            <span>Surat Undangan Rapat</span>
-          </button>
+            <button
+              onClick={() => setActiveTab('pip')}
+              className={`px-3 py-2 rounded-lg flex items-center gap-2 shrink-0 transition-all cursor-pointer ${
+                activeTab === 'pip'
+                  ? 'bg-emerald-500 text-slate-950 font-bold shadow-sm'
+                  : 'hover:bg-slate-700 text-slate-300'
+              }`}
+            >
+              <Award className="w-4 h-4" />
+              <span>Surat Keterangan PIP</span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab('berita_acara_rapat')}
-            className={`px-3 py-2 rounded-lg flex items-center gap-2 shrink-0 transition-all cursor-pointer ${
-              activeTab === 'berita_acara_rapat'
-                ? 'bg-emerald-500 text-slate-950 font-bold shadow-sm'
-                : 'hover:bg-slate-700 text-slate-300'
-            }`}
-          >
-            <FileText className="w-4 h-4" />
-            <span>Berita Acara Rapat</span>
-          </button>
+            <button
+              onClick={() => setActiveTab('undangan_rapat')}
+              className={`px-3 py-2 rounded-lg flex items-center gap-2 shrink-0 transition-all cursor-pointer ${
+                activeTab === 'undangan_rapat'
+                  ? 'bg-emerald-500 text-slate-950 font-bold shadow-sm'
+                  : 'hover:bg-slate-700 text-slate-300'
+              }`}
+            >
+              <Mail className="w-4 h-4" />
+              <span>Surat Undangan Rapat</span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab('rapat_ortu')}
-            className={`px-3 py-2 rounded-lg flex items-center gap-2 shrink-0 transition-all cursor-pointer ${
-              activeTab === 'rapat_ortu'
-                ? 'bg-emerald-500 text-slate-950 font-bold shadow-sm'
-                : 'hover:bg-slate-700 text-slate-300'
-            }`}
-          >
-            <Users className="w-4 h-4" />
-            <span>Daftar Hadir Rapat Ortu</span>
-          </button>
+            <button
+              onClick={() => setActiveTab('berita_acara_rapat')}
+              className={`px-3 py-2 rounded-lg flex items-center gap-2 shrink-0 transition-all cursor-pointer ${
+                activeTab === 'berita_acara_rapat'
+                  ? 'bg-emerald-500 text-slate-950 font-bold shadow-sm'
+                  : 'hover:bg-slate-700 text-slate-300'
+              }`}
+            >
+              <FileText className="w-4 h-4" />
+              <span>Berita Acara Rapat</span>
+            </button>
 
+            <button
+              onClick={() => setActiveTab('notula_rapat')}
+              className={`px-3 py-2 rounded-lg flex items-center gap-2 shrink-0 transition-all cursor-pointer ${
+                activeTab === 'notula_rapat'
+                  ? 'bg-emerald-500 text-slate-950 font-bold shadow-sm'
+                  : 'hover:bg-slate-700 text-slate-300'
+              }`}
+            >
+              <BookOpen className="w-4 h-4" />
+              <span>Notula Rapat</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('rapat_ortu')}
+              className={`px-3 py-2 rounded-lg flex items-center gap-2 shrink-0 transition-all cursor-pointer ${
+                activeTab === 'rapat_ortu'
+                  ? 'bg-emerald-500 text-slate-950 font-bold shadow-sm'
+                  : 'hover:bg-slate-700 text-slate-300'
+              }`}
+            >
+              <Users className="w-4 h-4" />
+              <span>Daftar Hadir Rapat Ortu</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('daftar_nilai')}
+              className={`px-3 py-2 rounded-lg flex items-center gap-2 shrink-0 transition-all cursor-pointer ${
+                activeTab === 'daftar_nilai'
+                  ? 'bg-emerald-500 text-slate-950 font-bold shadow-sm'
+                  : 'hover:bg-slate-700 text-slate-300'
+              }`}
+            >
+              <BookOpen className="w-4 h-4" />
+              <span>Daftar Nilai Siswa</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('sk_kepala_sekolah')}
+              className={`px-3 py-2 rounded-lg flex items-center gap-2 shrink-0 transition-all cursor-pointer ${
+                activeTab === 'sk_kepala_sekolah'
+                  ? 'bg-amber-400 text-slate-950 font-bold shadow-sm'
+                  : 'hover:bg-slate-700 text-amber-300'
+              }`}
+            >
+              <Award className="w-4 h-4" />
+              <span>SK Kepala Sekolah (PTK)</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('surat_tugas_guru')}
+              className={`px-3 py-2 rounded-lg flex items-center gap-2 shrink-0 transition-all cursor-pointer ${
+                activeTab === 'surat_tugas_guru'
+                  ? 'bg-amber-400 text-slate-950 font-bold shadow-sm'
+                  : 'hover:bg-slate-700 text-amber-300'
+              }`}
+            >
+              <Briefcase className="w-4 h-4" />
+              <span>Surat Tugas Guru</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('sppd_guru')}
+              className={`px-3 py-2 rounded-lg flex items-center gap-2 shrink-0 transition-all cursor-pointer ${
+                activeTab === 'sppd_guru'
+                  ? 'bg-amber-400 text-slate-950 font-bold shadow-sm'
+                  : 'hover:bg-slate-700 text-amber-300'
+              }`}
+            >
+              <Send className="w-4 h-4" />
+              <span>SPPD Guru / PTK</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile View Switcher Bar (Form Parameters vs Paper Preview) */}
+        <div className="flex md:hidden items-center border-b border-slate-300 bg-slate-200 p-1.5 shrink-0 no-print">
           <button
-            onClick={() => setActiveTab('daftar_nilai')}
-            className={`px-3 py-2 rounded-lg flex items-center gap-2 shrink-0 transition-all cursor-pointer ${
-              activeTab === 'daftar_nilai'
-                ? 'bg-emerald-500 text-slate-950 font-bold shadow-sm'
-                : 'hover:bg-slate-700 text-slate-300'
+            type="button"
+            onClick={() => setMobileView('form')}
+            className={`flex-1 py-1.5 text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 transition-colors cursor-pointer ${
+              mobileView === 'form'
+                ? 'bg-white text-emerald-700 shadow-sm'
+                : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <BookOpen className="w-4 h-4" />
-            <span>Daftar Nilai Siswa</span>
+            <Edit3 className="w-3.5 h-3.5" />
+            <span>Isian Parameter</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setMobileView('preview')}
+            className={`flex-1 py-1.5 text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 transition-colors cursor-pointer ${
+              mobileView === 'preview'
+                ? 'bg-emerald-600 text-white shadow-sm'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <FileText className="w-3.5 h-3.5" />
+            <span>Pratinjau Surat (A4)</span>
           </button>
         </div>
 
         {/* Modal Main Content Container (Control Sidebar + Printable Paper Preview) */}
         <div className="flex-1 flex flex-col md:flex-row overflow-hidden bg-slate-100 modal-print-body">
           {/* Controls Sidebar */}
-          <div className="w-full md:w-80 bg-white border-b md:border-b-0 md:border-r border-slate-200 p-4 overflow-y-auto shrink-0 space-y-4 no-print text-xs">
+          <div className={`w-full md:w-80 bg-white border-b md:border-b-0 md:border-r border-slate-200 p-3 sm:p-4 overflow-y-auto shrink-0 space-y-4 no-print text-xs ${mobileView === 'form' ? 'block' : 'hidden md:block'}`}>
             <h3 className="font-bold text-slate-900 border-b border-slate-200 pb-2 flex items-center gap-1.5 text-sm">
               <Edit3 className="w-4 h-4 text-emerald-600" />
               Parameter & Layout Dokumen
@@ -602,6 +953,42 @@ export const AdminDocumentsModal: React.FC<AdminDocumentsModalProps> = ({
                 </div>
               </div>
             </div>
+
+            {/* Teacher Picker for SK, Surat Tugas & SPPD */}
+            {['sk_kepala_sekolah', 'surat_tugas_guru', 'sppd_guru'].includes(activeTab) && (
+              <div className="space-y-2 bg-amber-50/80 p-3 rounded-xl border border-amber-200 shadow-2xs">
+                <div className="flex items-center justify-between">
+                  <label className="font-bold text-amber-950 block text-xs flex items-center gap-1.5">
+                    <Users className="w-4 h-4 text-amber-700" />
+                    Pilih Target Guru / PTK:
+                  </label>
+                  <span className="text-[10px] text-amber-800 font-bold bg-amber-100 px-2 py-0.5 rounded-full">
+                    {allTeachers.length} PTK Terdaftar
+                  </span>
+                </div>
+
+                <select
+                  value={selectedTeacherId}
+                  onChange={e => handleSelectTeacher(e.target.value)}
+                  className="w-full p-2 bg-white border border-amber-300 rounded-lg text-slate-900 font-bold text-xs focus:ring-2 focus:ring-amber-500 shadow-2xs cursor-pointer"
+                >
+                  <option value="custom">-- Input Manual / Isian Bebas --</option>
+                  {allTeachers.map(t => (
+                    <option key={t.id} value={t.id}>
+                      {t.nama} ({t.jenisPtk || 'Guru'}) - NIP: {t.nip || t.nuptk || '-'}
+                    </option>
+                  ))}
+                </select>
+
+                {currentTeacher && selectedTeacherId !== 'custom' && (
+                  <div className="text-[10.5px] text-amber-900 bg-white/80 p-2 rounded-lg border border-amber-200/80 space-y-0.5">
+                    <div><strong>NIP:</strong> {currentTeacher.nip || '-'} | <strong>NUPTK:</strong> {currentTeacher.nuptk || '-'}</div>
+                    <div><strong>Gol/Pangkat:</strong> {currentTeacher.pangkatGolongan || '-'}</div>
+                    <div><strong>Jabatan:</strong> {currentTeacher.jenisPtk || 'Guru Kelas'} {currentTeacher.tugasTambahan ? `(${currentTeacher.tugasTambahan})` : ''}</div>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Student Picker for Individual Letters */}
             {['aktif', 'mutasi_masuk', 'mutasi_keluar', 'pip'].includes(activeTab) && (
@@ -712,7 +1099,7 @@ export const AdminDocumentsModal: React.FC<AdminDocumentsModalProps> = ({
             )}
 
             {/* Common Letter Metadata */}
-            {['aktif', 'mutasi_masuk', 'mutasi_keluar', 'pip', 'undangan_rapat', 'berita_acara_rapat'].includes(activeTab) && (
+            {['aktif', 'mutasi_masuk', 'mutasi_keluar', 'pip', 'undangan_rapat', 'berita_acara_rapat', 'notula_rapat'].includes(activeTab) && (
               <>
                 <div className="space-y-1">
                   <div className="flex items-center justify-between">
@@ -1300,6 +1687,187 @@ export const AdminDocumentsModal: React.FC<AdminDocumentsModalProps> = ({
               </>
             )}
 
+            {/* Notula Rapat Controls */}
+            {activeTab === 'notula_rapat' && (
+              <>
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700 block text-xs">Pilih Preset Notula Rapat:</label>
+                  <div className="grid grid-cols-2 gap-1 text-[11px]">
+                    <button
+                      type="button"
+                      onClick={() => handlePresetNotulaChange('ortu')}
+                      className={`p-1.5 rounded-lg border font-medium transition-all text-center ${
+                        jenisRapatNotula === 'ortu'
+                          ? 'bg-emerald-600 text-white border-emerald-600 font-bold'
+                          : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
+                      }`}
+                    >
+                      Orang Tua / Wali
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handlePresetNotulaChange('guru')}
+                      className={`p-1.5 rounded-lg border font-medium transition-all text-center ${
+                        jenisRapatNotula === 'guru'
+                          ? 'bg-emerald-600 text-white border-emerald-600 font-bold'
+                          : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
+                      }`}
+                    >
+                      Dewan Guru
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handlePresetNotulaChange('komite')}
+                      className={`p-1.5 rounded-lg border font-medium transition-all text-center ${
+                        jenisRapatNotula === 'komite'
+                          ? 'bg-emerald-600 text-white border-emerald-600 font-bold'
+                          : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
+                      }`}
+                    >
+                      Komite Sekolah
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setJenisRapatNotula('kustom')}
+                      className={`p-1.5 rounded-lg border font-medium transition-all text-center ${
+                        jenisRapatNotula === 'kustom'
+                          ? 'bg-emerald-600 text-white border-emerald-600 font-bold'
+                          : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
+                      }`}
+                    >
+                      Kustom
+                    </button>
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700 block">Judul / Agenda Notula Rapat:</label>
+                  <textarea
+                    rows={2}
+                    value={judulNotula}
+                    onChange={e => setJudulNotula(e.target.value)}
+                    className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 text-xs font-bold uppercase"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700 block">Hari / Tanggal Rapat:</label>
+                  <input
+                    type="text"
+                    value={hariTanggalNotula}
+                    onChange={e => setHariTanggalNotula(e.target.value)}
+                    placeholder="Contoh: Sabtu, 25 Juli 2026"
+                    className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 text-xs"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-1">
+                    <label className="font-semibold text-slate-700 block">Waktu Pelaksanaan:</label>
+                    <input
+                      type="text"
+                      value={waktuNotula}
+                      onChange={e => setWaktuNotula(e.target.value)}
+                      placeholder="08:30 s.d. 11:30 WIB"
+                      className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 text-xs"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="font-semibold text-slate-700 block">Tempat Rapat:</label>
+                    <input
+                      type="text"
+                      value={tempatNotula}
+                      onChange={e => setTempatNotula(e.target.value)}
+                      placeholder="Ruang Aula Sekolah"
+                      className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 text-xs"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-1">
+                    <label className="font-semibold text-slate-700 block">Pimpinan Rapat:</label>
+                    <input
+                      type="text"
+                      value={pimpinanNotula}
+                      onChange={e => setPimpinanNotula(e.target.value)}
+                      className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 text-xs font-medium"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="font-semibold text-slate-700 block">Jabatan Pimpinan:</label>
+                    <input
+                      type="text"
+                      value={jabatanPimpinanNotula}
+                      onChange={e => setJabatanPimpinanNotula(e.target.value)}
+                      className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 text-xs"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-1">
+                    <label className="font-semibold text-slate-700 block">Notulis Rapat:</label>
+                    <input
+                      type="text"
+                      value={notulisNotula}
+                      onChange={e => setNotulisNotula(e.target.value)}
+                      className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 text-xs font-medium"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="font-semibold text-slate-700 block">Jabatan Notulis:</label>
+                    <input
+                      type="text"
+                      value={jabatanNotulisNotula}
+                      onChange={e => setJabatanNotulisNotula(e.target.value)}
+                      className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 text-xs"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700 block">Jumlah Peserta Hadir:</label>
+                  <input
+                    type="text"
+                    value={jumlahHadirNotula}
+                    onChange={e => setJumlahHadirNotula(e.target.value)}
+                    className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 text-xs"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700 block">Susunan Acara / Agenda:</label>
+                  <textarea
+                    rows={4}
+                    value={agendaNotula}
+                    onChange={e => setAgendaNotula(e.target.value)}
+                    className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 text-xs font-mono"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700 block">Jalannya Rapat & Pembahasan:</label>
+                  <textarea
+                    rows={5}
+                    value={jalannyaRapatNotula}
+                    onChange={e => setJalannyaRapatNotula(e.target.value)}
+                    className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 text-xs font-mono"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700 block">Kesimpulan & Tindak Lanjut:</label>
+                  <textarea
+                    rows={4}
+                    value={kesimpulanNotula}
+                    onChange={e => setKesimpulanNotula(e.target.value)}
+                    className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 text-xs font-mono"
+                  />
+                </div>
+              </>
+            )}
+
             {/* Rapat Ortu Controls */}
             {activeTab === 'rapat_ortu' && (
               <>
@@ -1429,6 +1997,468 @@ export const AdminDocumentsModal: React.FC<AdminDocumentsModalProps> = ({
               </>
             )}
 
+            {/* SK KEPALA SEKOLAH CONTROLS */}
+            {activeTab === 'sk_kepala_sekolah' && (
+              <>
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700 block text-xs">Pilih Preset Jenis SK:</label>
+                  <div className="grid grid-cols-2 gap-1 text-xs">
+                    <button
+                      type="button"
+                      onClick={() => handlePresetSkChange('tugas_mengajar')}
+                      className={`p-1.5 rounded-lg border text-[11px] font-medium transition-all text-center cursor-pointer ${
+                        jenisSk === 'tugas_mengajar'
+                          ? 'bg-amber-600 text-white border-amber-600 font-bold'
+                          : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
+                      }`}
+                    >
+                      Tugas Mengajar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handlePresetSkChange('pengangkatan')}
+                      className={`p-1.5 rounded-lg border text-[11px] font-medium transition-all text-center cursor-pointer ${
+                        jenisSk === 'pengangkatan'
+                          ? 'bg-amber-600 text-white border-amber-600 font-bold'
+                          : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
+                      }`}
+                    >
+                      Pengangkatan PTK
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handlePresetSkChange('tugas_tambahan')}
+                      className={`p-1.5 rounded-lg border text-[11px] font-medium transition-all text-center cursor-pointer ${
+                        jenisSk === 'tugas_tambahan'
+                          ? 'bg-amber-600 text-white border-amber-600 font-bold'
+                          : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
+                      }`}
+                    >
+                      Tugas Tambahan
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setJenisSk('kustom')}
+                      className={`p-1.5 rounded-lg border text-[11px] font-medium transition-all text-center cursor-pointer ${
+                        jenisSk === 'kustom'
+                          ? 'bg-amber-600 text-white border-amber-600 font-bold'
+                          : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
+                      }`}
+                    >
+                      Kustom / Bebas
+                    </button>
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700 block text-xs">Judul / Perihal SK Kepsek:</label>
+                  <textarea
+                    rows={2}
+                    value={judulSk}
+                    onChange={e => setJudulSk(e.target.value)}
+                    className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 text-xs font-semibold"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-1">
+                    <label className="font-semibold text-slate-700 block text-xs">Nama Guru Target:</label>
+                    <input
+                      type="text"
+                      value={namaGuruSk}
+                      onChange={e => setNamaGuruSk(e.target.value)}
+                      className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 text-xs font-bold"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="font-semibold text-slate-700 block text-xs">NIP / NUPTK:</label>
+                    <input
+                      type="text"
+                      value={nipGuruSk}
+                      onChange={e => setNipGuruSk(e.target.value)}
+                      className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 text-xs font-mono"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-1">
+                    <label className="font-semibold text-slate-700 block text-xs">Pangkat / Golongan:</label>
+                    <input
+                      type="text"
+                      value={pangkatGolSk}
+                      onChange={e => setPangkatGolSk(e.target.value)}
+                      className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 text-xs"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="font-semibold text-slate-700 block text-xs">Jabatan / Tugas:</label>
+                    <input
+                      type="text"
+                      value={jabatanGuruSk}
+                      onChange={e => setJabatanGuruSk(e.target.value)}
+                      className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 text-xs"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700 block text-xs">Menimbang:</label>
+                  <textarea
+                    rows={3}
+                    value={menimbangSk}
+                    onChange={e => setMenimbangSk(e.target.value)}
+                    className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 text-xs"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700 block text-xs">Mengingat:</label>
+                  <textarea
+                    rows={3}
+                    value={mengingatSk}
+                    onChange={e => setMengingatSk(e.target.value)}
+                    className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 text-xs"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700 block text-xs">Diktum KESATU:</label>
+                  <textarea
+                    rows={2}
+                    value={memutuskanKesatu}
+                    onChange={e => setMemutuskanKesatu(e.target.value)}
+                    className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 text-xs font-medium"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700 block text-xs">Diktum KEDUA:</label>
+                  <textarea
+                    rows={2}
+                    value={memutuskanKedua}
+                    onChange={e => setMemutuskanKedua(e.target.value)}
+                    className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 text-xs"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700 block text-xs">Diktum KETIGA:</label>
+                  <textarea
+                    rows={2}
+                    value={memutuskanKetiga}
+                    onChange={e => setMemutuskanKetiga(e.target.value)}
+                    className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 text-xs"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700 block text-xs">Tembusan SK:</label>
+                  <textarea
+                    rows={2}
+                    value={tembusanSk}
+                    onChange={e => setTembusanSk(e.target.value)}
+                    className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 text-xs"
+                  />
+                </div>
+              </>
+            )}
+
+            {/* SURAT TUGAS GURU CONTROLS */}
+            {activeTab === 'surat_tugas_guru' && (
+              <>
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700 block text-xs">Pilih Preset Surat Tugas:</label>
+                  <div className="grid grid-cols-2 gap-1 text-xs">
+                    <button
+                      type="button"
+                      onClick={() => handlePresetSuratTugasChange('bimtek')}
+                      className={`p-1.5 rounded-lg border text-[11px] font-medium transition-all text-center cursor-pointer ${
+                        jenisSuratTugas === 'bimtek'
+                          ? 'bg-amber-600 text-white border-amber-600 font-bold'
+                          : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
+                      }`}
+                    >
+                      Bimtek / Pelatihan
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handlePresetSuratTugasChange('kkg')}
+                      className={`p-1.5 rounded-lg border text-[11px] font-medium transition-all text-center cursor-pointer ${
+                        jenisSuratTugas === 'kkg'
+                          ? 'bg-amber-600 text-white border-amber-600 font-bold'
+                          : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
+                      }`}
+                    >
+                      Kegiatan KKG
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handlePresetSuratTugasChange('pendamping')}
+                      className={`p-1.5 rounded-lg border text-[11px] font-medium transition-all text-center cursor-pointer ${
+                        jenisSuratTugas === 'pendamping'
+                          ? 'bg-amber-600 text-white border-amber-600 font-bold'
+                          : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
+                      }`}
+                    >
+                      Pendamping Lomba
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setJenisSuratTugas('kustom')}
+                      className={`p-1.5 rounded-lg border text-[11px] font-medium transition-all text-center cursor-pointer ${
+                        jenisSuratTugas === 'kustom'
+                          ? 'bg-amber-600 text-white border-amber-600 font-bold'
+                          : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
+                      }`}
+                    >
+                      Kustom
+                    </button>
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700 block text-xs">Dasar / Pertimbangan Tugas:</label>
+                  <textarea
+                    rows={2}
+                    value={dasarSuratTugas}
+                    onChange={e => setDasarSuratTugas(e.target.value)}
+                    className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 text-xs"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-1">
+                    <label className="font-semibold text-slate-700 block text-xs">Nama Guru Target:</label>
+                    <input
+                      type="text"
+                      value={namaGuruTugas}
+                      onChange={e => setNamaGuruTugas(e.target.value)}
+                      className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 text-xs font-bold"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="font-semibold text-slate-700 block text-xs">NIP / NUPTK:</label>
+                    <input
+                      type="text"
+                      value={nipGuruTugas}
+                      onChange={e => setNipGuruTugas(e.target.value)}
+                      className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 text-xs font-mono"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700 block text-xs">Maksud & Tujuan Tugas:</label>
+                  <textarea
+                    rows={2}
+                    value={maksudTugas}
+                    onChange={e => setMaksudTugas(e.target.value)}
+                    className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 text-xs font-medium"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700 block text-xs">Hari / Tanggal Pelaksanaan:</label>
+                  <input
+                    type="text"
+                    value={hariTanggalTugas}
+                    onChange={e => setHariTanggalTugas(e.target.value)}
+                    className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 text-xs"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-1">
+                    <label className="font-semibold text-slate-700 block text-xs">Waktu Tugas:</label>
+                    <input
+                      type="text"
+                      value={waktuTugas}
+                      onChange={e => setWaktuTugas(e.target.value)}
+                      className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 text-xs"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="font-semibold text-slate-700 block text-xs">Tempat Tugas:</label>
+                    <input
+                      type="text"
+                      value={tempatTugas}
+                      onChange={e => setTempatTugas(e.target.value)}
+                      className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 text-xs"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700 block text-xs">Kalimat Penutup Surat Tugas:</label>
+                  <textarea
+                    rows={2}
+                    value={penutupTugas}
+                    onChange={e => setPenutupTugas(e.target.value)}
+                    className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 text-xs"
+                  />
+                </div>
+              </>
+            )}
+
+            {/* SPPD GURU CONTROLS */}
+            {activeTab === 'sppd_guru' && (
+              <>
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700 block text-xs">Pilih Preset SPPD:</label>
+                  <div className="grid grid-cols-2 gap-1 text-xs">
+                    <button
+                      type="button"
+                      onClick={() => handlePresetSppdChange('dinas_luar')}
+                      className={`p-1.5 rounded-lg border text-[11px] font-medium transition-all text-center cursor-pointer ${
+                        jenisSppd === 'dinas_luar'
+                          ? 'bg-amber-600 text-white border-amber-600 font-bold'
+                          : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
+                      }`}
+                    >
+                      Dinas Luar Disdik
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handlePresetSppdChange('pelatihan')}
+                      className={`p-1.5 rounded-lg border text-[11px] font-medium transition-all text-center cursor-pointer ${
+                        jenisSppd === 'pelatihan'
+                          ? 'bg-amber-600 text-white border-amber-600 font-bold'
+                          : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
+                      }`}
+                    >
+                      Pelatihan LPMP
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handlePresetSppdChange('kkg_korwil')}
+                      className={`p-1.5 rounded-lg border text-[11px] font-medium transition-all text-center cursor-pointer ${
+                        jenisSppd === 'kkg_korwil'
+                          ? 'bg-amber-600 text-white border-amber-600 font-bold'
+                          : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
+                      }`}
+                    >
+                      KKG Korwil
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setJenisSppd('kustom')}
+                      className={`p-1.5 rounded-lg border text-[11px] font-medium transition-all text-center cursor-pointer ${
+                        jenisSppd === 'kustom'
+                          ? 'bg-amber-600 text-white border-amber-600 font-bold'
+                          : 'bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100'
+                      }`}
+                    >
+                      Kustom
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-1">
+                    <label className="font-semibold text-slate-700 block text-xs">Nomor SPPD:</label>
+                    <input
+                      type="text"
+                      value={nomorSppd}
+                      onChange={e => setNomorSppd(e.target.value)}
+                      className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 text-xs font-mono"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="font-semibold text-slate-700 block text-xs">Lembar Ke:</label>
+                    <input
+                      type="text"
+                      value={lembarKeSppd}
+                      onChange={e => setLembarKeSppd(e.target.value)}
+                      className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 text-xs"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700 block text-xs">Maksud Perjalanan Dinas:</label>
+                  <textarea
+                    rows={2}
+                    value={maksudSppd}
+                    onChange={e => setMaksudSppd(e.target.value)}
+                    className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 text-xs font-medium"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-1">
+                    <label className="font-semibold text-slate-700 block text-xs">Tempat Berangkat:</label>
+                    <input
+                      type="text"
+                      value={tempatBerangkatSppd}
+                      onChange={e => setTempatBerangkatSppd(e.target.value)}
+                      className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 text-xs"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="font-semibold text-slate-700 block text-xs">Tempat Tujuan:</label>
+                    <input
+                      type="text"
+                      value={tempatTujuanSppd}
+                      onChange={e => setTempatTujuanSppd(e.target.value)}
+                      className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 text-xs font-bold"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-1.5">
+                  <div className="space-y-1">
+                    <label className="font-semibold text-slate-700 block text-[11px]">Lama Dinas:</label>
+                    <input
+                      type="text"
+                      value={lamaSppd}
+                      onChange={e => setLamaSppd(e.target.value)}
+                      className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 text-xs"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="font-semibold text-slate-700 block text-[11px]">Tgl Berangkat:</label>
+                    <input
+                      type="text"
+                      value={tanggalBerangkatSppd}
+                      onChange={e => setTanggalBerangkatSppd(e.target.value)}
+                      className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 text-xs"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="font-semibold text-slate-700 block text-[11px]">Tgl Kembali:</label>
+                    <input
+                      type="text"
+                      value={tanggalKembaliSppd}
+                      onChange={e => setTanggalKembaliSppd(e.target.value)}
+                      className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 text-xs"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700 block text-xs">Pembebanan Anggaran:</label>
+                  <input
+                    type="text"
+                    value={pembebananAnggaranSppd}
+                    onChange={e => setPembebananAnggaranSppd(e.target.value)}
+                    className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 text-xs"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-semibold text-slate-700 block text-xs">Pengikut / Rombongan:</label>
+                  <textarea
+                    rows={2}
+                    value={pengikutSppd}
+                    onChange={e => setPengikutSppd(e.target.value)}
+                    placeholder="Nama pengikut jika ada..."
+                    className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 text-xs"
+                  />
+                </div>
+              </>
+            )}
+
             <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200 text-emerald-900 space-y-1 text-[11px]">
               <span className="font-bold flex items-center gap-1">
                 <School className="w-3.5 h-3.5 text-emerald-700" />
@@ -1441,14 +2471,14 @@ export const AdminDocumentsModal: React.FC<AdminDocumentsModalProps> = ({
           </div>
 
           {/* Printable Live Paper Preview Window */}
-          <div className="flex-1 bg-slate-200 p-4 sm:p-8 overflow-x-auto overflow-y-auto flex flex-col items-center modal-print-preview">
+          <div className={`flex-1 bg-slate-200 p-2 sm:p-4 md:p-8 overflow-x-auto overflow-y-auto flex-col items-center modal-print-preview ${mobileView === 'preview' ? 'flex' : 'hidden md:flex'}`}>
             
             {/* Live Orientation Status Indicator Bar */}
-            <div className="mb-4 w-full max-w-4xl flex items-center justify-between text-xs font-sans text-slate-700 no-print bg-white px-4 py-2.5 rounded-xl border border-slate-300 shadow-sm shrink-0">
+            <div className="mb-3 sm:mb-4 w-full max-w-4xl flex flex-wrap items-center justify-between gap-2 text-xs font-sans text-slate-700 no-print bg-white px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl border border-slate-300 shadow-sm shrink-0">
               <div className="flex items-center gap-2">
                 <Sliders className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span>
-                  Preview Tampilan Live: <strong className="text-slate-900 uppercase">A4 {pageOrientation} ({pageOrientation === 'landscape' ? '297 × 210 mm' : '210 × 297 mm'})</strong>
+                <span className="text-[11px] sm:text-xs">
+                  Preview Live: <strong className="text-slate-900 uppercase">A4 {pageOrientation}</strong>
                 </span>
               </div>
               <div className="flex items-center gap-2">
@@ -1458,6 +2488,14 @@ export const AdminDocumentsModal: React.FC<AdminDocumentsModalProps> = ({
                 <span className="bg-sky-100 text-sky-800 text-[10px] font-bold px-2 py-0.5 rounded-md">
                   Skala {customScale}%
                 </span>
+                <button
+                  type="button"
+                  onClick={handlePrint}
+                  className="md:hidden ml-1 px-2.5 py-1 bg-emerald-600 text-white font-bold text-[11px] rounded-lg flex items-center gap-1 shadow-xs cursor-pointer"
+                >
+                  <Printer className="w-3.5 h-3.5" />
+                  Cetak
+                </button>
               </div>
             </div>
 
@@ -2279,6 +3317,120 @@ export const AdminDocumentsModal: React.FC<AdminDocumentsModalProps> = ({
                 </div>
               )}
 
+              {/* DOKUMEN: NOTULA RAPAT */}
+              {activeTab === 'notula_rapat' && (
+                <div className="space-y-4 font-sans text-slate-900 leading-relaxed">
+                  {/* Document Title & Metadata */}
+                  <div className="text-center space-y-1 pt-1">
+                    <h2 className="text-sm font-bold uppercase tracking-wide underline decoration-1 underline-offset-4">
+                      NOTULA RAPAT
+                    </h2>
+                    <p className="text-xs font-bold text-slate-800 uppercase max-w-xl mx-auto px-4">
+                      {judulNotula}
+                    </p>
+                    <p className="text-xs font-mono text-slate-700">
+                      Nomor Lampiran / Dokumen: {nomorSurat}
+                    </p>
+                  </div>
+
+                  {/* Information Box */}
+                  <div className="my-2 p-3 bg-slate-50/90 border border-slate-300 rounded-lg text-xs space-y-1.5 mx-1 shadow-2xs">
+                    <p className="font-bold text-xs border-b border-slate-200 pb-1 text-slate-800">
+                      A. PELAKSANAAN & PRESENSI RAPAT
+                    </p>
+                    <table className="w-full text-xs">
+                      <tbody>
+                        <tr>
+                          <td className="w-36 py-0.5 font-semibold text-slate-700">Hari / Tanggal</td>
+                          <td className="w-4 font-bold text-slate-700">:</td>
+                          <td className="font-bold text-slate-900">{hariTanggalNotula}</td>
+                        </tr>
+                        <tr>
+                          <td className="py-0.5 font-semibold text-slate-700">Waktu Pelaksanaan</td>
+                          <td className="font-bold text-slate-700">:</td>
+                          <td className="font-medium text-slate-900">{waktuNotula}</td>
+                        </tr>
+                        <tr>
+                          <td className="py-0.5 font-semibold text-slate-700">Tempat Rapat</td>
+                          <td className="font-bold text-slate-700">:</td>
+                          <td className="font-medium text-slate-900">{tempatNotula}</td>
+                        </tr>
+                        <tr>
+                          <td className="py-0.5 font-semibold text-slate-700">Pimpinan Rapat</td>
+                          <td className="font-bold text-slate-700">:</td>
+                          <td className="font-semibold text-slate-900">{pimpinanNotula} ({jabatanPimpinanNotula})</td>
+                        </tr>
+                        <tr>
+                          <td className="py-0.5 font-semibold text-slate-700">Notulis / Pencatat</td>
+                          <td className="font-bold text-slate-700">:</td>
+                          <td className="font-medium text-slate-900">{notulisNotula} ({jabatanNotulisNotula})</td>
+                        </tr>
+                        <tr>
+                          <td className="py-0.5 font-semibold text-slate-700">Jumlah Peserta Hadir</td>
+                          <td className="font-bold text-slate-700">:</td>
+                          <td className="font-bold text-emerald-800">{jumlahHadirNotula}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Agenda / Susunan Acara */}
+                  <div className="space-y-1 text-xs pt-1">
+                    <h3 className="font-bold text-slate-900 border-b border-slate-300 pb-0.5 uppercase text-[11px]">
+                      B. SUSUNAN ACARA / AGENDA RAPAT
+                    </h3>
+                    <div className="whitespace-pre-line leading-relaxed pl-2 font-medium text-slate-900">
+                      {agendaNotula}
+                    </div>
+                  </div>
+
+                  {/* Jalannya Rapat & Pembahasan */}
+                  <div className="space-y-1 text-xs pt-1">
+                    <h3 className="font-bold text-slate-900 border-b border-slate-300 pb-0.5 uppercase text-[11px]">
+                      C. CATATAN PROSES & CATATAN PEMBAHASAN RAPAT
+                    </h3>
+                    <div className="whitespace-pre-line leading-relaxed pl-2 font-normal text-slate-900 bg-slate-50/50 p-2.5 rounded border border-slate-200">
+                      {jalannyaRapatNotula}
+                    </div>
+                  </div>
+
+                  {/* Kesimpulan & Tindak Lanjut */}
+                  <div className="space-y-1 text-xs pt-1">
+                    <h3 className="font-bold text-slate-900 border-b border-slate-300 pb-0.5 uppercase text-[11px]">
+                      D. KESIMPULAN & TINDAK LANJUT (ACTION PLAN)
+                    </h3>
+                    <div className="whitespace-pre-line leading-relaxed pl-2 font-semibold text-slate-900 bg-emerald-50/40 p-2.5 rounded border border-emerald-200">
+                      {kesimpulanNotula}
+                    </div>
+                  </div>
+
+                  {/* Signatures */}
+                  <div className="pt-4 space-y-4 font-sans text-xs">
+                    <div className="flex justify-between items-start px-4">
+                      <div className="text-center w-52 space-y-1">
+                        <p className="font-medium text-slate-700">{jabatanNotulisNotula}</p>
+                        <div className="h-16" />
+                        <p className="font-bold underline text-slate-900">{notulisNotula}</p>
+                      </div>
+
+                      <div className="text-center w-52 space-y-1">
+                        <p className="font-medium text-slate-700">{jabatanPimpinanNotula}</p>
+                        <div className="h-16" />
+                        <p className="font-bold underline text-slate-900">{pimpinanNotula}</p>
+                      </div>
+                    </div>
+
+                    <div className="text-center w-64 mx-auto pt-2 space-y-1">
+                      <p className="text-slate-700">Mengetahui,</p>
+                      <p className="font-bold text-slate-900">Kepala {schoolInfo.name}</p>
+                      <div className="h-16" />
+                      <p className="font-bold underline uppercase tracking-wide text-slate-900">{schoolInfo.kepalaSekolah}</p>
+                      <p className="text-[11px] font-mono text-slate-800">NIP. {schoolInfo.nipKepala}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* DOKUMEN 6: DAFTAR HADIR RAPAT ORANG TUA */}
               {activeTab === 'rapat_ortu' && (
                 <div className="space-y-4 font-sans text-slate-900">
@@ -2443,6 +3595,378 @@ export const AdminDocumentsModal: React.FC<AdminDocumentsModalProps> = ({
                           <p className="text-[10px]">NIP. ....................................</p>
                         </div>
                       </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* DOKUMEN: SK KEPALA SEKOLAH */}
+              {activeTab === 'sk_kepala_sekolah' && (
+                <div className="space-y-4 font-serif text-slate-900 leading-relaxed text-xs">
+                  {/* Title Header */}
+                  <div className="text-center space-y-1">
+                    <h2 className="text-sm font-bold uppercase tracking-wider underline underline-offset-4">
+                      KEPUTUSAN KEPALA {schoolInfo.name.toUpperCase()}
+                    </h2>
+                    <p className="font-mono font-bold text-xs text-slate-800">
+                      Nomor: {nomorSk || nomorSurat}
+                    </p>
+                    <p className="font-bold text-xs uppercase px-4 pt-1 max-w-xl mx-auto leading-normal">
+                      TENTANG<br />
+                      {judulSk}
+                    </p>
+                    <p className="font-bold uppercase text-xs pt-2">
+                      KEPALA {schoolInfo.name.toUpperCase()},
+                    </p>
+                  </div>
+
+                  {/* Menimbang & Mengingat Block */}
+                  <div className="space-y-2 text-xs pt-1">
+                    <div className="flex gap-2">
+                      <div className="w-24 font-bold shrink-0">Menimbang</div>
+                      <div className="w-3 font-bold">:</div>
+                      <div className="flex-1 whitespace-pre-line text-justify leading-snug">
+                        {menimbangSk}
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <div className="w-24 font-bold shrink-0">Mengingat</div>
+                      <div className="w-3 font-bold">:</div>
+                      <div className="flex-1 whitespace-pre-line text-justify leading-snug">
+                        {mengingatSk}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Memutuskan Header */}
+                  <div className="text-center font-bold text-xs uppercase py-1 border-y border-slate-300 tracking-widest my-2">
+                    MEMUTUSKAN:
+                  </div>
+
+                  {/* Memutuskan Diktum */}
+                  <div className="space-y-2 text-xs">
+                    <div className="flex gap-2">
+                      <div className="w-24 font-bold shrink-0">Menetapkan</div>
+                      <div className="w-3 font-bold">:</div>
+                      <div className="flex-1 font-bold">
+                        KEPUTUSAN KEPALA {schoolInfo.name.toUpperCase()} TENTANG {judulSk.toUpperCase()}.
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <div className="w-24 font-bold shrink-0">KESATU</div>
+                      <div className="w-3 font-bold">:</div>
+                      <div className="flex-1 text-justify leading-snug font-medium">
+                        {memutuskanKesatu}
+                      </div>
+                    </div>
+
+                    {/* PTK Details Card */}
+                    <div className="my-2 p-3 bg-slate-50 border border-slate-300 rounded-lg text-xs space-y-1 mx-4">
+                      <p className="font-bold text-xs border-b border-slate-200 pb-0.5 text-slate-800">
+                        IDENTITAS GURU / PTK PENERIMA KEPUTUSAN:
+                      </p>
+                      <table className="w-full text-xs">
+                        <tbody>
+                          <tr>
+                            <td className="w-36 font-semibold py-0.5 text-slate-700">Nama Lengkap</td>
+                            <td className="w-4 font-bold">:</td>
+                            <td className="font-bold text-slate-900">{namaGuruSk || currentTeacher?.nama || '-'}</td>
+                          </tr>
+                          <tr>
+                            <td className="font-semibold py-0.5 text-slate-700">NIP / NUPTK</td>
+                            <td className="font-bold">:</td>
+                            <td className="font-mono font-medium text-slate-900">{nipGuruSk || currentTeacher?.nip || '-'} / {nuptkGuruSk || currentTeacher?.nuptk || '-'}</td>
+                          </tr>
+                          <tr>
+                            <td className="font-semibold py-0.5 text-slate-700">Pangkat / Golongan</td>
+                            <td className="font-bold">:</td>
+                            <td className="font-medium text-slate-900">{pangkatGolSk || currentTeacher?.pangkatGolongan || 'Penata Muda / III/a'}</td>
+                          </tr>
+                          <tr>
+                            <td className="font-semibold py-0.5 text-slate-700">Jabatan / Unit Kerja</td>
+                            <td className="font-bold">:</td>
+                            <td className="font-bold text-emerald-800">{jabatanGuruSk || currentTeacher?.jenisPtk || 'Guru Kelas'}</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <div className="w-24 font-bold shrink-0">KEDUA</div>
+                      <div className="w-3 font-bold">:</div>
+                      <div className="flex-1 text-justify leading-snug">
+                        {memutuskanKedua}
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <div className="w-24 font-bold shrink-0">KETIGA</div>
+                      <div className="w-3 font-bold">:</div>
+                      <div className="flex-1 text-justify leading-snug">
+                        {memutuskanKetiga}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Date & Signature Block */}
+                  <div className="pt-4 flex justify-between items-start text-xs font-sans">
+                    <div className="w-64 space-y-1 text-[11px]">
+                      <p className="font-bold underline text-slate-800">Tembusan Kepada Yth:</p>
+                      <div className="whitespace-pre-line text-slate-700 leading-snug pl-1">
+                        {tembusanSk}
+                      </div>
+                    </div>
+
+                    <div className="text-center w-64 space-y-1">
+                      <p>Ditetapkan di : {schoolInfo.kabupaten || 'Bandung Barat'}</p>
+                      <p>Pada tanggal : {tanggalSurat}</p>
+                      <p className="font-bold text-slate-900 pt-1">Kepala {schoolInfo.name}</p>
+                      <div className="h-16 flex items-center justify-center">
+                        <span className="text-[10px] text-slate-400 italic">[ Stempel & Tanda Tangan ]</span>
+                      </div>
+                      <p className="font-bold underline uppercase tracking-wide text-slate-900">{schoolInfo.kepalaSekolah}</p>
+                      <p className="text-[11px] font-mono text-slate-800">NIP. {schoolInfo.nipKepala}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* DOKUMEN: SURAT TUGAS GURU */}
+              {activeTab === 'surat_tugas_guru' && (
+                <div className="space-y-5 font-serif text-slate-900 leading-relaxed text-xs">
+                  {/* Title Header */}
+                  <div className="text-center space-y-1 pt-1">
+                    <h2 className="text-base font-bold uppercase tracking-widest underline underline-offset-4">
+                      SURAT TUGAS
+                    </h2>
+                    <p className="font-mono font-bold text-xs text-slate-800">
+                      Nomor: {nomorSuratTugas || nomorSurat}
+                    </p>
+                  </div>
+
+                  {/* Pertimbangan / Dasar */}
+                  <div className="space-y-1 text-xs">
+                    <div className="flex gap-2">
+                      <div className="w-24 font-bold shrink-0">Menimbang / Dasar</div>
+                      <div className="w-3 font-bold">:</div>
+                      <div className="flex-1 text-justify leading-snug">
+                        {dasarSuratTugas}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Central Command Header */}
+                  <div className="text-center font-bold text-xs uppercase py-1 border-y border-slate-300 tracking-wider my-2">
+                    MEMERINTAHKAN / MENUGASKAN:
+                  </div>
+
+                  {/* Target Person */}
+                  <div className="space-y-2 text-xs">
+                    <div className="flex gap-2">
+                      <div className="w-24 font-bold shrink-0">Kepada</div>
+                      <div className="w-3 font-bold">:</div>
+                      <div className="flex-1 space-y-1 bg-slate-50 p-2.5 rounded-lg border border-slate-300">
+                        <table className="w-full text-xs">
+                          <tbody>
+                            <tr>
+                              <td className="w-32 font-semibold py-0.5">1. Nama Lengkap</td>
+                              <td className="w-4 font-bold">:</td>
+                              <td className="font-bold text-slate-900 text-sm">{namaGuruTugas || currentTeacher?.nama || '-'}</td>
+                            </tr>
+                            <tr>
+                              <td className="font-semibold py-0.5">2. NIP / NUPTK</td>
+                              <td className="font-bold">:</td>
+                              <td className="font-mono font-medium">{nipGuruTugas || currentTeacher?.nip || '-'} / {nuptkGuruTugas || currentTeacher?.nuptk || '-'}</td>
+                            </tr>
+                            <tr>
+                              <td className="font-semibold py-0.5">3. Pangkat / Golongan</td>
+                              <td className="font-bold">:</td>
+                              <td className="font-medium">{pangkatGolTugas || currentTeacher?.pangkatGolongan || '-'}</td>
+                            </tr>
+                            <tr>
+                              <td className="font-semibold py-0.5">4. Jabatan / Unit Kerja</td>
+                              <td className="font-bold">:</td>
+                              <td className="font-bold text-emerald-800">{jabatanGuruTugas || currentTeacher?.jenisPtk || 'Guru Kelas'} - {schoolInfo.name}</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2 pt-1">
+                      <div className="w-24 font-bold shrink-0">Untuk</div>
+                      <div className="w-3 font-bold">:</div>
+                      <div className="flex-1 space-y-2">
+                        <p className="font-medium text-justify leading-snug text-slate-900">
+                          {maksudTugas}
+                        </p>
+                        
+                        <div className="bg-amber-50/60 p-2.5 rounded-lg border border-amber-200 text-xs space-y-1">
+                          <div className="grid grid-cols-3 gap-2">
+                            <div><strong className="text-amber-950">Hari / Tanggal:</strong><br />{hariTanggalTugas}</div>
+                            <div><strong className="text-amber-950">Waktu Pelaksanaan:</strong><br />{waktuTugas}</div>
+                            <div><strong className="text-amber-950">Tempat Pelaksanaan:</strong><br />{tempatTugas}</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Penutup */}
+                  <div className="pt-2 text-justify text-xs leading-snug">
+                    {penutupTugas}
+                  </div>
+
+                  {/* Signature Box */}
+                  <div className="pt-6 flex justify-end text-xs font-sans">
+                    <div className="text-center w-64 space-y-1">
+                      <p>{schoolInfo.kabupaten || 'Bandung Barat'}, {tanggalSurat}</p>
+                      <p className="font-bold text-slate-900">Kepala {schoolInfo.name}</p>
+                      <div className="h-16 flex items-center justify-center">
+                        <span className="text-[10px] text-slate-400 italic">[ Stempel & Tanda Tangan ]</span>
+                      </div>
+                      <p className="font-bold underline uppercase tracking-wide text-slate-900">{schoolInfo.kepalaSekolah}</p>
+                      <p className="text-[11px] font-mono text-slate-800">NIP. {schoolInfo.nipKepala}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* DOKUMEN: SPPD GURU */}
+              {activeTab === 'sppd_guru' && (
+                <div className="space-y-4 font-sans text-slate-900 leading-relaxed text-xs">
+                  {/* Top Right Reference */}
+                  <div className="flex justify-between items-start pt-1 text-[11px]">
+                    <div className="font-serif italic text-slate-500">
+                      {schoolInfo.name} - Administrasi Kedinasan SPPD
+                    </div>
+                    <div className="border border-slate-400 p-2 rounded bg-slate-50 space-y-0.5 text-[10.5px]">
+                      <div><strong>Lembar Ke</strong> : {lembarKeSppd}</div>
+                      <div><strong>Kode No</strong> : {nomorSppd}</div>
+                      <div><strong>Nomor</strong> : {nomorSppd}</div>
+                    </div>
+                  </div>
+
+                  {/* SPPD Main Title */}
+                  <div className="text-center space-y-0.5 py-1">
+                    <h2 className="text-sm font-bold uppercase tracking-widest underline underline-offset-4 text-slate-900">
+                      SURAT PERINDAH PERJALANAN DINAS
+                    </h2>
+                    <p className="font-mono font-bold text-xs text-slate-800">
+                      ( S P P D )
+                    </p>
+                  </div>
+
+                  {/* Official 10-Row SPPD Table */}
+                  <table className="w-full border-collapse border border-slate-900 text-xs">
+                    <tbody>
+                      <tr>
+                        <td className="border border-slate-900 px-2 py-1.5 font-bold text-center w-8">1.</td>
+                        <td className="border border-slate-900 px-2 py-1.5 font-semibold w-64">Pejabat Berwenang yang memberi perintah</td>
+                        <td className="border border-slate-900 px-2 py-1.5 font-bold text-slate-900">{pejabatPerintah}</td>
+                      </tr>
+                      <tr>
+                        <td className="border border-slate-900 px-2 py-1.5 font-bold text-center">2.</td>
+                        <td className="border border-slate-900 px-2 py-1.5 font-semibold">Nama / NIP Pegawai yang diperintahkan</td>
+                        <td className="border border-slate-900 px-2 py-1.5 font-bold text-slate-900">
+                          {namaGuruSppd || currentTeacher?.nama || '-'} <br />
+                          <span className="font-mono font-normal text-[11px]">NIP. {nipGuruSppd || currentTeacher?.nip || '-'}</span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="border border-slate-900 px-2 py-1.5 font-bold text-center">3.</td>
+                        <td className="border border-slate-900 px-2 py-1.5 font-semibold">
+                          a. Pangkat dan Golongan<br />
+                          b. Jabatan / Instansi<br />
+                          c. Tingkat Biaya Perjalanan Dinas
+                        </td>
+                        <td className="border border-slate-900 px-2 py-1.5 space-y-0.5">
+                          <div>a. {pangkatGolSppd || currentTeacher?.pangkatGolongan || 'Penata Muda / III/a'}</div>
+                          <div>b. {jabatanGuruSppd || currentTeacher?.jenisPtk || 'Guru Kelas'} / {schoolInfo.name}</div>
+                          <div>c. {tingkatBiayaSppd}</div>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="border border-slate-900 px-2 py-1.5 font-bold text-center">4.</td>
+                        <td className="border border-slate-900 px-2 py-1.5 font-semibold">Maksud Perjalanan Dinas</td>
+                        <td className="border border-slate-900 px-2 py-1.5 font-bold text-slate-900">{maksudSppd}</td>
+                      </tr>
+                      <tr>
+                        <td className="border border-slate-900 px-2 py-1.5 font-bold text-center">5.</td>
+                        <td className="border border-slate-900 px-2 py-1.5 font-semibold">Alat Angkut yang dipergunakan</td>
+                        <td className="border border-slate-900 px-2 py-1.5">{alatAngkutSppd}</td>
+                      </tr>
+                      <tr>
+                        <td className="border border-slate-900 px-2 py-1.5 font-bold text-center">6.</td>
+                        <td className="border border-slate-900 px-2 py-1.5 font-semibold">
+                          a. Tempat Berangkat<br />
+                          b. Tempat Tujuan
+                        </td>
+                        <td className="border border-slate-900 px-2 py-1.5">
+                          <div>a. {tempatBerangkatSppd}</div>
+                          <div>b. <strong className="text-slate-900">{tempatTujuanSppd}</strong></div>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="border border-slate-900 px-2 py-1.5 font-bold text-center">7.</td>
+                        <td className="border border-slate-900 px-2 py-1.5 font-semibold">
+                          a. Lamanya Perjalanan Dinas<br />
+                          b. Tanggal Berangkat<br />
+                          c. Tanggal Harus Kembali
+                        </td>
+                        <td className="border border-slate-900 px-2 py-1.5">
+                          <div>a. <strong>{lamaSppd}</strong></div>
+                          <div>b. {tanggalBerangkatSppd}</div>
+                          <div>c. {tanggalKembaliSppd}</div>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="border border-slate-900 px-2 py-1.5 font-bold text-center">8.</td>
+                        <td className="border border-slate-900 px-2 py-1.5 font-semibold">Pengikut / Rombongan</td>
+                        <td className="border border-slate-900 px-2 py-1.5 whitespace-pre-line">{pengikutSppd || '-'}</td>
+                      </tr>
+                      <tr>
+                        <td className="border border-slate-900 px-2 py-1.5 font-bold text-center">9.</td>
+                        <td className="border border-slate-900 px-2 py-1.5 font-semibold">
+                          Pembebanan Anggaran<br />
+                          a. Instansi<br />
+                          b. Akun / Sumber Dana
+                        </td>
+                        <td className="border border-slate-900 px-2 py-1.5">
+                          <div>a. {schoolInfo.name}</div>
+                          <div>b. {pembebananAnggaranSppd}</div>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="border border-slate-900 px-2 py-1.5 font-bold text-center">10.</td>
+                        <td className="border border-slate-900 px-2 py-1.5 font-semibold">Keterangan Lain-Lain</td>
+                        <td className="border border-slate-900 px-2 py-1.5 italic text-slate-700">{keteranganSppd}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+
+                  {/* SPPD Visa & Validation Stamps Grid */}
+                  <div className="grid grid-cols-2 gap-4 border border-slate-900 p-3 bg-slate-50/60 rounded text-[11px]">
+                    <div className="space-y-1.5 border-r border-slate-400 pr-3">
+                      <p className="font-bold border-b border-slate-300 pb-0.5">I. Berangkat dari & Tiba di Tempat Tujuan</p>
+                      <p>Tiba di : <span className="font-bold">{tempatTujuanSppd}</span></p>
+                      <p>Pada Tanggal : {tanggalBerangkatSppd}</p>
+                      <p>Kepala Instansi / Pejabat Penerima:</p>
+                      <div className="h-12 border-b border-slate-400 border-dashed" />
+                      <p className="text-[10px] text-slate-500">( Tanda Tangan & Cap Stempel Instansi Tujuan )</p>
+                    </div>
+
+                    <div className="space-y-1.5 pl-1">
+                      <p className="font-bold border-b border-slate-300 pb-0.5">II. Lembar Pengesahan Berangkat Kembali</p>
+                      <p>Berangkat dari : <span className="font-bold">{tempatBerangkatSppd}</span></p>
+                      <p>Ke : {tempatTujuanSppd}</p>
+                      <p>Pada Tanggal : {tanggalBerangkatSppd}</p>
+                      <p className="font-bold pt-1">Kepala {schoolInfo.name}</p>
+                      <div className="h-12" />
+                      <p className="font-bold underline uppercase">{schoolInfo.kepalaSekolah}</p>
+                      <p className="text-[10px] font-mono">NIP. {schoolInfo.nipKepala}</p>
                     </div>
                   </div>
                 </div>
